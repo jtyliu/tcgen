@@ -1,0 +1,8 @@
+[flake8]
+max-line-length = 100
+    # Black Compatibility
+extend-ignore = 
+    # Style Changes
+    B006
+    # Related imports
+    F405, F403, E501, B009, B010, E731
