@@ -154,7 +154,7 @@ class Bool(Integer):
 #         return [Bool(*args, **kwargs) for _ in range(num)]
 
 
-class Float(Primitive):
+class Float(Primitive, InclusiveMixin):
     def __init__(
         self,
         *args: float,
@@ -168,16 +168,37 @@ class Float(Primitive):
             U = args[0]
         elif len(args) == 2:
             L, U = args
-        elif len(args) == 3:
-            L, U, places = args
-        elif len(args) > 3:
+        elif len(args) > 2:
             raise TypeError
 
         self.L = L
         self.U = U
         self.places = places
-        self.inclusive = inclusive
+        self._inclusive = inclusive
         Primitive.__init__(self, **kwargs)
+
+    def _generate_weighted_value(self):
+        kwargs = {
+            'places': self.places
+        }
+        if self.wcnt:
+            kwargs['wcnt'] = self.wcnt
+        if self._inclusive is not None:
+            kwargs['inclusive'] = self._inclusive
+        self.value = random.wrandfloat(self.L, self.U, **kwargs)
+
+    def _generate_value(self):
+        kwargs = {
+            'places': self.places
+        }
+        if self._inclusive is not None:
+            kwargs['inclusive'] = self._inclusive
+        self.value = random.randfloat(self.L, self.U, **kwargs)
+
+    def __str__(self):
+        super().__str__()
+        fmt = '{:.'+str(self.places)+'f}'
+        return fmt.format(self.value)
 
     def val(self):
         self.__str__()
