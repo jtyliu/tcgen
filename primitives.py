@@ -226,7 +226,7 @@ class Char(Primitive):
                 raise TypeError('The array must be a permutation of [1 ... len(char_set)]')
         elif len(priority):
             logging.warning('Not weighted, but priority arg still is passed')
-        
+
         if len(char_set) == 0:
             raise TypeError
 
@@ -254,5 +254,5 @@ class Char(Primitive):
     def val(self):
         self.__str__()
         return self.value
-    
+
     char = val
