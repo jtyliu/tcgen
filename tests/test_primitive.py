@@ -27,6 +27,8 @@ class TestInteger:
 
     def test_exclusive(self):
         assert Integer(1, 3, inclusive=False).int() == 2
+        assert Integer(1, 3, weighted=True).exclusive().int() == 2
+        assert Integer(1, 3, weighted=True).exclusive().inclusive().int() == 3
         with pytest.raises(InvalidRangeException):
             Integer(1, 2, inclusive=False)
 

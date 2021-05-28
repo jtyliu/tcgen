@@ -1,6 +1,6 @@
 [flake8]
 max-line-length = 100
-    # Black Compatibility
+per-file-ignores = __init__.py:F401
 extend-ignore = 
     # Style Changes
     B006

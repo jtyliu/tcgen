@@ -72,7 +72,7 @@ class random():
         return ret
 
     @staticmethod
-    def noise(L: int, U: int, data: list[int]) -> list[int]:
+    def noise(L: int, U: int, data: list[int], inclusive: bool = True) -> list[int]:
         '''
         Returns data added with noise
 
@@ -88,4 +88,60 @@ class random():
             InvalidRangeException: where L > U
         '''
         # Not sure if this should be inclusive or not
-        return [data[i] + random.randint(L, U) for i in range(len(data))]
+        return [data[i] + random.randint(L, U, inclusive) for i in range(len(data))]
+
+    @staticmethod
+    def randfloat(L: float, U: float, places: int, inclusive: bool = True) -> float:
+        '''
+        Returns a random float
+
+        Args:
+            L: Lower bound
+            U: Upper bound
+            inclusive: whether the bounds are inclusive
+            places: rounded decimal places
+
+        Returns:
+            A random float
+
+        Raises:
+            InvalidRangeException: where L > U
+        '''
+        L_i = int(L*10**places)
+        U_i = int(U*10**places)
+        if not inclusive:
+            L_i += 1
+            U_i -= 1
+        if L_i > U_i:
+            raise InvalidRangeException
+        if L_i == U_i:
+            logging.warning(f"The bounds {L} and {U} can only generated one value")
+        return random_pkg.randint(L_i, U_i)/10**places
+
+    @staticmethod
+    def wrandfloat(L: float, U: float, places: int, wcnt: int = 5, inclusive: bool = True) -> float:
+        '''
+        Returns a weighted random float
+
+        Args:
+            L: Lower bound
+            R: Upper bound
+            wcnt: weighted count.
+                if wcnt > 0, it returns the max of wcnt random floats
+                if wcnt < 0, it returns the min of abs(wcnt) random floats
+            inclusive: whether the bounds are inclusive
+            places: rounded decimal places
+
+        Returns:
+            A weighted random
+
+        Raises:
+            InvalidRangeException: where L > U
+        '''
+        ret = random.randfloat(L, U, places, inclusive)
+        for _ in range(abs(wcnt)):
+            if wcnt > 0:
+                ret = max(ret, random.randfloat(L, U, places, inclusive))
+            if wcnt < 0:
+                ret = min(ret, random.randfloat(L, U, places, inclusive))
+        return ret

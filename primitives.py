@@ -1,21 +1,29 @@
-from typing import Tuple, Union
-from utils.constants import *
 from utils import random, InvalidRangeException
 import logging
 
 __all__ = [
     'Primitive',
     'Integer',
-    'Integers',
     'Bool',
-    'Bools',
+    'Float',
 ]
+
+
+class InclusiveMixin:
+
+    def inclusive(self):
+        self._inclusive = True
+        return self
+
+    def exclusive(self):
+        self._inclusive = False
+        return self
 
 
 class Primitive:
     L = None
     U = None
-    inclusive = False
+    _inclusive = False
 
     def __init__(
         self,
@@ -27,9 +35,9 @@ class Primitive:
             logging.info('Recieved extra kwargs: '+kwargs)
 
         if self.L and self.U:
-            if self.inclusive and self.L > self.U:
+            if self._inclusive and self.L > self.U:
                 raise InvalidRangeException
-            if not self.inclusive and self.L + 1 > self.U - 1:
+            if not self._inclusive and self.L + 1 > self.U - 1:
                 raise InvalidRangeException
 
         self.weighted = weighted
@@ -46,6 +54,9 @@ class Primitive:
     def _generate_weighted_value(self):
         raise NotImplementedError
 
+    def val(self):
+        raise NotImplementedError
+
     def __str__(self):
         if not self.is_generated:
             if self.weighted:
@@ -57,7 +68,7 @@ class Primitive:
         return str(self.value)
 
 
-class Integer(Primitive):
+class Integer(Primitive, InclusiveMixin):
     def __init__(
         self,
         *args: int,
@@ -69,41 +80,34 @@ class Integer(Primitive):
         if len(args) == 1:
             U = args[0]
         elif len(args) == 2:
-            L = args[0]
-            U = args[1]
+            L, U = args
         elif len(args) > 2:
             raise TypeError
 
-        self.L = L
-        self.U = U
-        self.inclusive = inclusive
+        self.L = int(L)
+        self.U = int(U)
+        self._inclusive = inclusive
         Primitive.__init__(self, **kwargs)
 
     def _generate_weighted_value(self):
         kwargs = {}
         if self.wcnt:
             kwargs['wcnt'] = self.wcnt
-        if self.inclusive:
-            kwargs['inclusive'] = self.inclusive
+        if self._inclusive is not None:
+            kwargs['inclusive'] = self._inclusive
         self.value = random.wrandint(self.L, self.U, **kwargs)
 
     def _generate_value(self):
         kwargs = {}
-        if self.inclusive:
-            kwargs['inclusive'] = self.inclusive
+        if self._inclusive is not None:
+            kwargs['inclusive'] = self._inclusive
         self.value = random.randint(self.L, self.U, **kwargs)
 
-    def inclusive(self):
-        self.inclusive = True
-        return self
-
-    def exclusive(self):
-        self.inclusive = False
-        return self
-
-    def int(self):
+    def val(self):
         self.__str__()
         return self.value
+
+    int = val
 
 
 # class Integers():
@@ -140,7 +144,7 @@ class Bool(Integer):
         Integer.__init__(self, 0, 1, **kwargs)
 
     def bool(self):
-        return self.int()
+        return self.val()
 
 
 # class Bools():
@@ -151,5 +155,32 @@ class Bool(Integer):
 
 
 class Float(Primitive):
-    def __init__(self, weighted: bool, wcnt: int, **kwargs):
-        super().__init__(weighted=weighted, wcnt=wcnt, **kwargs)
+    def __init__(
+        self,
+        *args: float,
+        L: float = 1,
+        U: float = 1e5,
+        places: int = 2,
+        inclusive: bool = True,
+        **kwargs
+    ):
+        if len(args) == 1:
+            U = args[0]
+        elif len(args) == 2:
+            L, U = args
+        elif len(args) == 3:
+            L, U, places = args
+        elif len(args) > 3:
+            raise TypeError
+
+        self.L = L
+        self.U = U
+        self.places = places
+        self.inclusive = inclusive
+        Primitive.__init__(self, **kwargs)
+
+    def val(self):
+        self.__str__()
+        return self.value
+
+    float = val

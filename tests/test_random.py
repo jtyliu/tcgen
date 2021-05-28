@@ -36,3 +36,28 @@ class TestRandom:
             random.noise(10, 1, [1, 1, 2, 3, 4])
         assert random.noise(1, 1000, [0, 0, 0, 0, 9999, 0, 0]) == [865, 395, 777, 912, 10430, 42, 266]
         assert random.noise(1, 100, []) == []
+
+    def test_randfloat(self):
+        with pytest.raises(InvalidRangeException):
+            random.randfloat(1.15, 1.13, 2)
+        with pytest.raises(InvalidRangeException):
+            random.randfloat(1.00, 1.02, 1, inclusive=False)
+        with pytest.raises(InvalidRangeException):
+            random.randfloat(1.0, 1.1, 1, inclusive=False)
+        assert random.randfloat(1.15, 2.35, 2) == 2.22
+        assert random.randfloat(1.15, 2.35, 3) == 1.938
+        assert random.randfloat(100, 200, 1, inclusive=False) == 177.7
+        assert random.randfloat(1.00, 1.02, 2, inclusive=False) == 1.01
+        assert random.randfloat(1.0, 1.2, 1, inclusive=False) == 1.1
+
+    def test_wrandfloat(self):
+        with pytest.raises(InvalidRangeException):
+            random.wrandfloat(1.15, 1.13, 2)
+        with pytest.raises(InvalidRangeException):
+            random.wrandfloat(1.00, 1.02, 1, inclusive=False)
+        with pytest.raises(InvalidRangeException):
+            random.wrandfloat(1.0, 1.1, 1, inclusive=False)
+        assert random.wrandfloat(1.15, 2.35, 2) == 2.27
+        assert random.wrandfloat(1.15, 2.35, 3, wcnt=-10) == 1.435
+        assert random.wrandfloat(100, 200, 1, inclusive=False) == 181.9
+        assert random.wrandfloat(100, 200, 1, wcnt=-10, inclusive=False) == 110.2
