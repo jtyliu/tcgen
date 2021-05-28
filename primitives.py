@@ -6,6 +6,7 @@ __all__ = [
     'Integer',
     'Bool',
     'Float',
+    'Char',
 ]
 
 
@@ -32,7 +33,7 @@ class Primitive:
         **kwargs
     ):
         if kwargs:
-            logging.info('Recieved extra kwargs: '+kwargs)
+            logging.info('Recieved extra kwargs: ' + kwargs)
 
         if self.L and self.U:
             if self._inclusive and self.L > self.U:
@@ -197,7 +198,7 @@ class Float(Primitive, InclusiveMixin):
 
     def __str__(self):
         super().__str__()
-        fmt = '{:.'+str(self.places)+'f}'
+        fmt = '{:.' + str(self.places) + 'f}'
         return fmt.format(self.value)
 
     def val(self):
@@ -205,3 +206,53 @@ class Float(Primitive, InclusiveMixin):
         return self.value
 
     float = val
+
+
+class Char(Primitive):
+    def __init__(self, char_set: str, priority: list[int] = [], **kwargs):
+        '''
+        Args:
+            char_set: A string which the character will use
+                If weighted and wcnt > 0, the left most characters in the string are favoured more than the right
+                If weighted and wcnt > 0, the right most characters in the string are favoured more than the left
+            priority: A list which states the priority of each character in char_set
+                The array must be a permutation of [1 ... len(char_set)]
+        '''
+        if 'weighted' in kwargs and kwargs['weighted']:
+            if len(priority) != len(char_set) and len(priority):
+                raise TypeError('The array must be a permutation of [1 ... len(char_set)]')
+
+            if len(priority) and sorted(priority) != list(range(1, len(char_set) + 1)):
+                raise TypeError('The array must be a permutation of [1 ... len(char_set)]')
+        elif len(priority):
+            logging.warning('Not weighted, but priority arg still is passed')
+        
+        if len(char_set) == 0:
+            raise TypeError
+
+        if len(char_set) == 1:
+            logging.warning('Len or character set is 1')
+
+        self.char_set = char_set
+        if len(priority):
+            self.priority = [0] * (len(char_set) + 1)
+            for k, v in enumerate(priority):
+                self.priority[v] = k + 1
+        else:
+            self.priority = list(range(1, len(char_set) + 1))
+        Primitive.__init__(self, **kwargs)
+
+    def _generate_weighted_value(self):
+        kwargs = {}
+        if self.wcnt:
+            kwargs['wcnt'] = self.wcnt
+        self.value = random.wchoice(self.char_set, self.priority, **kwargs)
+
+    def _generate_value(self):
+        self.value = random.choice(self.char_set)
+
+    def val(self):
+        self.__str__()
+        return self.value
+    
+    char = val

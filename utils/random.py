@@ -107,8 +107,8 @@ class random():
         Raises:
             InvalidRangeException: where L > U
         '''
-        L_i = int(L*10**places)
-        U_i = int(U*10**places)
+        L_i = int(L * 10**places)
+        U_i = int(U * 10**places)
         if not inclusive:
             L_i += 1
             U_i -= 1
@@ -116,7 +116,7 @@ class random():
             raise InvalidRangeException
         if L_i == U_i:
             logging.warning(f"The bounds {L} and {U} can only generated one value")
-        return random_pkg.randint(L_i, U_i)/10**places
+        return random_pkg.randint(L_i, U_i) / 10**places
 
     @staticmethod
     def wrandfloat(L: float, U: float, places: int, wcnt: int = 5, inclusive: bool = True) -> float:
@@ -145,3 +145,50 @@ class random():
             if wcnt < 0:
                 ret = min(ret, random.randfloat(L, U, places, inclusive))
         return ret
+
+    @staticmethod
+    def choice(char_set: str) -> str:
+        '''
+        Returns a random character in string
+
+        Args:
+            char_set: Character set to choose string from
+
+        Returns:
+            A random character
+
+        Raises:
+            TypeError: where char_set is empty
+        '''
+        if len(char_set) == 0:
+            raise TypeError
+        idx = random.randint(1, len(char_set))
+        return char_set[idx - 1]
+
+    @staticmethod
+    def wchoice(char_set: str, priority: list[int], wcnt: int = 5):
+        '''
+        Returns a weighted random character in string
+
+        Args:
+            char_set: Character set to choose string from
+            priority: Priority of each character in char_set
+            wcnt: weighted count.
+                if wcnt > 0, it returns the max of wcnt random floats
+                if wcnt < 0, it returns the min of abs(wcnt) random floats
+
+        Returns:
+            A weighted random character
+
+        Raises:
+            TypeError: where char_set is empty
+        '''
+        if len(char_set) == 0:
+            raise TypeError
+        ret = random.randint(1, len(char_set))
+        for _ in range(abs(wcnt)):
+            if wcnt > 0:
+                ret = max(ret, random.randint(1, len(char_set)))
+            if wcnt < 0:
+                ret = min(ret, random.randint(1, len(char_set)))
+        return char_set[priority[len(char_set) - ret] - 1]

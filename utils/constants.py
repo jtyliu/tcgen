@@ -5,7 +5,7 @@ __all__ = [
     'UPPERCASE',
 ]
 
-ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 DIGITS = '0123456789'
+ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 LOWERCASE = 'abcdefghijklmnopqrstuvwxyz'
 UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'

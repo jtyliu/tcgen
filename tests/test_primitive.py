@@ -65,10 +65,21 @@ class TestFloat(TestPrimitiveMixin):
     def test_exclusive(self):
         assert Float(1, 3, inclusive=False).float() == 1.99
         assert Float(1, 3, weighted=True).exclusive().float() == 2.95
-        assert Float(1, 3, weighted=True).exclusive().inclusive().float() == 3
+        assert Float(1, 3, weighted=True).exclusive().inclusive().float() == 3.00
         with pytest.raises(InvalidRangeException):
             Float(1, 2, inclusive=False)
 
     def test_places(self):
         assert Float(1, 3, places=5).float() == 2.00989
         assert Float(1, 3, places=1).float() == 2.3
+
+
+class TestChar(TestPrimitiveMixin):
+    def test_char(self):
+        with pytest.raises(TypeError):
+            Char('')
+        assert Char(LOWERCASE).char() == 'm'
+        assert Char('#.', [2, 1], weighted=True).char() == '.'
+        assert Char('#.', [2, 1], weighted=True, wcnt=10).char() == '.'
+        assert Char('#.', weighted=True, wcnt=10).char() == '#'
+        assert Char('#.', weighted=True, wcnt=-10).char() == '.'

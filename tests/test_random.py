@@ -1,3 +1,4 @@
+from utils.constants import LOWERCASE
 from utils import random, InvalidRangeException
 import pytest
 
@@ -61,3 +62,17 @@ class TestRandom:
         assert random.wrandfloat(1.15, 2.35, 3, wcnt=-10) == 1.435
         assert random.wrandfloat(100, 200, 1, inclusive=False) == 181.9
         assert random.wrandfloat(100, 200, 1, wcnt=-10, inclusive=False) == 110.2
+
+    def test_choice(self):
+        with pytest.raises(TypeError):
+            random.choice('')
+        assert random.choice('.#') == '#'
+        assert random.choice('.#') == '#'
+        assert random.choice('.#') == '.'
+        assert random.choice(LOWERCASE) == 'i'
+
+    def test_wchoice(self):
+        with pytest.raises(TypeError):
+            random.wchoice('')
+        assert random.wchoice(LOWERCASE, list(range(1, len(LOWERCASE) + 1)), wcnt=10) == 'a'
+        assert random.wchoice(LOWERCASE, list(range(1, len(LOWERCASE) + 1)), wcnt=-50) == 'z'
