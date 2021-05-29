@@ -1,8 +1,10 @@
+from tcgen.utils.constants import LOWERCASE
 from tcgen.primitives import *
 
 
 __all__ = [
     'Array',
+    'String',
 ]
 
 
@@ -47,8 +49,8 @@ class Array(DataType):
             Array(N, 1e4, type=Float()) # The bounds passed overwrite Float() bounds
         '''
         # Most likely need to remove this later on for List()
-        if not isinstance(N, (int, float, Integer)):
-            raise TypeError
+        # if not isinstance(N, (int, float, Integer)):
+        #     raise TypeError
 
         # This too.
         self.N = int(N)
@@ -90,3 +92,18 @@ class Array(DataType):
     def __str__(self):
         super().__str__()
         return ' '.join(map(str, self.value))
+
+
+class String(Array):
+
+    def __init__(self, N: int, char_set: str = LOWERCASE, *args, **kwargs):
+        Array.__init__(self, N, *args, type=Char(), char_set=char_set, **kwargs)
+
+    def _generate(self):
+        self.value = ''
+        for _ in range(self.N):
+            self.value += self._type._generate()
+
+    def __str__(self):
+        super().__str__()
+        return self.value

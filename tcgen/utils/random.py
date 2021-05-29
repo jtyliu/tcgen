@@ -1,4 +1,5 @@
 import random as random_pkg
+import sympy
 import logging
 # This is meant to be a wrapper to allow
 # weighted randoms
@@ -192,3 +193,61 @@ class random():
             if wcnt < 0:
                 ret = min(ret, random.randint(1, len(char_set)))
         return char_set[priority[len(char_set) - ret] - 1]
+
+    @staticmethod
+    def randprime(L: int, U: int, inclusive: bool = True) -> int:
+        '''
+        Returns a random prime
+
+        Args:
+            L: Lower bound
+            U: Upper bound
+            inclusive: whether the bounds are inclusive
+
+        Returns:
+            A random prime
+
+        Raises:
+            InvalidRangeException: where L > U
+            ValueError: prime does not exist in range
+        '''
+        if not inclusive:
+            L += 1
+            U -= 1
+        if L > U:
+            raise InvalidRangeException
+        if L == U:
+            logging.warning(f"The bounds {L} and {U} are the same, only one "
+                            "value can be generated")
+        # randprime is [a, b)
+        return sympy.randprime(L, U + 1)
+
+    @staticmethod
+    def wrandprime(L: int, U: int, wcnt: int = 5, inclusive: bool = True) -> int:
+        '''
+        Returns a weighted random prime
+
+        Args:
+            L: Lower bound
+            R: Upper bound
+            wcnt: weighted count.
+                if wcnt > 0, it returns the max of wcnt random primes
+                if wcnt < 0, it returns the min of abs(wcnt) random primes
+            inclusive: whether the bounds are inclusive
+
+        Returns:
+            A weighted random prime
+
+        Raises:
+            InvalidRangeException: where L > U
+            ValueError: prime does not exist in range
+        '''
+        # The way cf testlib does it is a bit different.
+        # https://github.com/MikeMirzayanov/testlib/blob/master/testlib.h#L787
+        ret = random.randprime(L, U, inclusive)
+        for _ in range(abs(wcnt)):
+            if wcnt > 0:
+                ret = max(ret, random.randprime(L, U, inclusive))
+            if wcnt < 0:
+                ret = min(ret, random.randprime(L, U, inclusive))
+        return ret

@@ -1,3 +1,4 @@
+from tcgen.utils.constants import LOWERCASE
 from tcgen.utils import random, InvalidRangeException
 import logging
 
@@ -7,6 +8,7 @@ __all__ = [
     'Bool',
     'Float',
     'Char',
+    'Prime',
 ]
 
 
@@ -63,7 +65,7 @@ class ArithmeticMixin:
 class Primitive:
     L = None
     U = None
-    _inclusive = False
+    _inclusive = None
 
     def __init__(
         self,
@@ -72,13 +74,14 @@ class Primitive:
         **kwargs
     ):
         if kwargs:
-            logging.info('Recieved extra kwargs: ' + kwargs)
+            logging.info('Recieved extra kwargs: ' + str(kwargs))
 
         if self.L and self.U:
-            if self._inclusive and self.L > self.U:
-                raise InvalidRangeException
-            if not self._inclusive and self.L + 1 > self.U - 1:
-                raise InvalidRangeException
+            if self._inclusive is not None:
+                if self._inclusive and self.L > self.U:
+                    raise InvalidRangeException
+                if not self._inclusive and self.L + 1 > self.U - 1:
+                    raise InvalidRangeException
 
         self.weighted = weighted
         self.value = None
@@ -88,22 +91,28 @@ class Primitive:
     def is_generated(self):
         return self.value is not None
 
-    def _generate_value(self):
+    def _generate_value(self, **kwargs):
         raise NotImplementedError
 
-    def _generate_weighted_value(self):
+    def _generate_weighted_value(self, **kwargs):
         raise NotImplementedError
 
     def val(self):
         raise NotImplementedError
 
     def _generate(self):
+        kwargs = {}
+        if self._inclusive is not None:
+            kwargs['inclusive'] = self._inclusive
+
         if self.weighted:
             logging.debug('Generating weighted value')
-            self._generate_weighted_value()
+            if self.wcnt:
+                kwargs['wcnt'] = self.wcnt
+            self._generate_weighted_value(**kwargs)
         else:
             logging.debug('Generating value')
-            self._generate_value()
+            self._generate_value(**kwargs)
         return self.value
 
     def __str__(self):
@@ -133,18 +142,10 @@ class Integer(Primitive, InclusiveMixin, ArithmeticMixin):
         self._inclusive = inclusive
         Primitive.__init__(self, **kwargs)
 
-    def _generate_weighted_value(self):
-        kwargs = {}
-        if self.wcnt:
-            kwargs['wcnt'] = self.wcnt
-        if self._inclusive is not None:
-            kwargs['inclusive'] = self._inclusive
+    def _generate_weighted_value(self, **kwargs):
         self.value = random.wrandint(self.L, self.U, **kwargs)
 
-    def _generate_value(self):
-        kwargs = {}
-        if self._inclusive is not None:
-            kwargs['inclusive'] = self._inclusive
+    def _generate_value(self, **kwargs):
         self.value = random.randint(self.L, self.U, **kwargs)
 
     def val(self):
@@ -181,6 +182,24 @@ class Integer(Primitive, InclusiveMixin, ArithmeticMixin):
 
 
 #         return [Integer(*args, **kwargs) for _ in range(num)]
+
+
+class Prime(Integer):
+    def __init__(self, *args, **kwargs):
+        Integer.__init__(self, *args, **kwargs)
+        # To raise error
+        random.randprime(self.L, self.U)
+
+    def _generate_weighted_value(self, **kwargs):
+        self.value = random.wrandprime(self.L, self.U, **kwargs)
+
+    def _generate_value(self, **kwargs):
+        self.value = random.randprime(self.L, self.U, **kwargs)
+
+    def val(self):
+        return super().val()
+
+    prime = val
 
 
 class Bool(Integer):
@@ -221,23 +240,11 @@ class Float(Primitive, InclusiveMixin, ArithmeticMixin):
         self._inclusive = inclusive
         Primitive.__init__(self, **kwargs)
 
-    def _generate_weighted_value(self):
-        kwargs = {
-            'places': self.places
-        }
-        if self.wcnt:
-            kwargs['wcnt'] = self.wcnt
-        if self._inclusive is not None:
-            kwargs['inclusive'] = self._inclusive
-        self.value = random.wrandfloat(self.L, self.U, **kwargs)
+    def _generate_weighted_value(self, **kwargs):
+        self.value = random.wrandfloat(self.L, self.U, places=self.places, **kwargs)
 
-    def _generate_value(self):
-        kwargs = {
-            'places': self.places
-        }
-        if self._inclusive is not None:
-            kwargs['inclusive'] = self._inclusive
-        self.value = random.randfloat(self.L, self.U, **kwargs)
+    def _generate_value(self, **kwargs):
+        self.value = random.randfloat(self.L, self.U, places=self.places, **kwargs)
 
     def __str__(self):
         super().__str__()
@@ -252,7 +259,7 @@ class Float(Primitive, InclusiveMixin, ArithmeticMixin):
 
 
 class Char(Primitive):
-    def __init__(self, char_set: str, priority: list[int] = [], **kwargs):
+    def __init__(self, char_set: str = LOWERCASE, priority: list[int] = [], **kwargs):
         '''
         Args:
             char_set: A string which the character will use
@@ -276,6 +283,9 @@ class Char(Primitive):
         if len(char_set) == 1:
             logging.warning('Len or character set is 1')
 
+        if 'inclusive' in kwargs:
+            raise TypeError
+
         self.char_set = char_set
         if len(priority):
             self.priority = [0] * (len(char_set) + 1)
@@ -283,16 +293,14 @@ class Char(Primitive):
                 self.priority[v] = k + 1
         else:
             self.priority = list(range(1, len(char_set) + 1))
+
         Primitive.__init__(self, **kwargs)
 
-    def _generate_weighted_value(self):
-        kwargs = {}
-        if self.wcnt:
-            kwargs['wcnt'] = self.wcnt
+    def _generate_weighted_value(self, **kwargs):
         self.value = random.wchoice(self.char_set, self.priority, **kwargs)
 
-    def _generate_value(self):
-        self.value = random.choice(self.char_set)
+    def _generate_value(self, **kwargs):
+        self.value = random.choice(self.char_set, **kwargs)
 
     def val(self):
         self.__str__()

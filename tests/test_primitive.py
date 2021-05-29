@@ -36,6 +36,34 @@ class TestInteger(TestPrimitiveMixin):
             Integer(1, 2, inclusive=False)
 
 
+class TestPrime(TestPrimitiveMixin):
+
+    def test_prime(self):
+        assert Prime().int() == 99347
+        assert str(Prime()) == "5309"
+
+    def test_invalid_range(self):
+        with pytest.raises(InvalidRangeException):
+            Prime(1e9, 1)
+
+    def test_valid_prime(self):
+        assert Prime(1, 1e9).int() == 413654009
+
+    def test_weighted_prime(self):
+        assert Prime(1, 1e9, weighted=True, wcnt=25).int() == 985946617
+        assert Prime(1, 1e9, weighted=True).int() == 976832621
+        assert Prime(1, 1e9, weighted=True, wcnt=-10).int() == 79180349
+
+    def test_exclusive(self):
+        assert Prime(1, 5, inclusive=False).int() == 3
+        assert Prime(1, 5, weighted=True).exclusive().int() == 3
+        assert Prime(1, 5, weighted=True, wcnt=25).exclusive().inclusive().int() == 5
+        with pytest.raises(InvalidRangeException):
+            Prime(1, 2, inclusive=False)
+        with pytest.raises(ValueError):
+            Prime(8, 10)
+
+
 class TestBool(TestPrimitiveMixin):
 
     def test_bool(self):
