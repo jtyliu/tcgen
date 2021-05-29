@@ -46,12 +46,13 @@ class Array(DataType):
             Array(N, 0, 1e4, type=Float()) # The bounds passed overwrite Float() bounds
             Array(N, 1e4, type=Float()) # The bounds passed overwrite Float() bounds
         '''
-        if isinstance(N, float):
-            self.N = int(N)
-        if isinstance(N, int):
-            self.N = N
-        if isinstance(N, Integer):
-            self.N = N.val()
+        # Most likely need to remove this later on for List()
+        if not isinstance(N, (int, float, Integer)):
+            raise TypeError
+
+        # This too.
+        self.N = int(N)
+
         if not issubclass(type.__class__, Primitive):
             raise TypeError
 

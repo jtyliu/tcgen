@@ -21,6 +21,45 @@ class InclusiveMixin:
         return self
 
 
+class ArithmeticMixin:
+
+    def __add__(self, val):
+        if self.is_generated:
+            return self.value + val
+        self.L += val
+        self.U += val
+        return self
+
+    __radd__ = __add__
+
+    def __sub__(self, val):
+        if self.is_generated:
+            return self.value - val
+        self.L -= val
+        self.U -= val
+        return self
+
+    __rsub__ = __sub__
+
+    def __mul__(self, val):
+        if self.is_generated:
+            return self.value * val
+        self.L *= val
+        self.U *= val
+        return self
+
+    __rmul__ = __mul__
+
+    def __div__(self, val):
+        if self.is_generated:
+            return self.value / val
+        self.L /= val
+        self.U /= val
+        return self
+
+    __rdiv__ = __div__
+
+
 class Primitive:
     L = None
     U = None
@@ -73,7 +112,7 @@ class Primitive:
         return str(self.value)
 
 
-class Integer(Primitive, InclusiveMixin):
+class Integer(Primitive, InclusiveMixin, ArithmeticMixin):
     def __init__(
         self,
         *args: int,
@@ -112,7 +151,7 @@ class Integer(Primitive, InclusiveMixin):
         self.__str__()
         return self.value
 
-    int = val
+    __int__ = int = val
 
 
 # class Integers():
@@ -159,7 +198,7 @@ class Bool(Integer):
 #         return [Bool(*args, **kwargs) for _ in range(num)]
 
 
-class Float(Primitive, InclusiveMixin):
+class Float(Primitive, InclusiveMixin, ArithmeticMixin):
     def __init__(
         self,
         *args: float,
