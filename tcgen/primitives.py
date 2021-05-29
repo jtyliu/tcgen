@@ -255,7 +255,10 @@ class Float(Primitive, InclusiveMixin, ArithmeticMixin):
         self.__str__()
         return self.value
 
-    float = val
+    def __int__(self):
+        return int(self.val())
+
+    __float__ = float = val
 
 
 class Char(Primitive):

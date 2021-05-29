@@ -49,3 +49,16 @@ class TestArray(TestDataTypesMixin):
         arr = Array(5).assign(3, 10)
         assert list(arr) == [9, 9, 3, 7, 10]
         assert list(arr) == [9, 9, 3, 7, 10]
+
+    def test_getitem(self):
+        arr = Array(5).assign(3, 10)
+        assert list(arr) == [9, 9, 3, 7, 10]
+        for test, val in zip(arr, [9, 9, 3, 7, 10]):
+            assert test == val
+
+
+class TestString(TestDataTypesMixin):
+
+    def test_string(self):
+        assert str(String(10)) == 'mynbiqpmzj'
+        assert str(String(10, char_set=UPPERCASE)) == 'PLSGQEJEYD'

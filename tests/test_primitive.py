@@ -49,7 +49,7 @@ class TestPrime(TestPrimitiveMixin):
     def test_valid_prime(self):
         assert Prime(1, 1e9).int() == 413654009
 
-    def test_weighted_prime(self):
+    def test_weighted_integer(self):
         assert Prime(1, 1e9, weighted=True, wcnt=25).int() == 985946617
         assert Prime(1, 1e9, weighted=True).int() == 976832621
         assert Prime(1, 1e9, weighted=True, wcnt=-10).int() == 79180349

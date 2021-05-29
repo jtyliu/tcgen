@@ -93,6 +93,10 @@ class Array(DataType):
         super().__str__()
         return ' '.join(map(str, self.value))
 
+    def __getitem__(self, item):
+        super().__str__()
+        return self.value[item]
+
 
 class String(Array):
 
