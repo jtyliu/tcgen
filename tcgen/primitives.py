@@ -1,4 +1,4 @@
-from utils import random, InvalidRangeException
+from tcgen.utils import random, InvalidRangeException
 import logging
 
 __all__ = [
@@ -58,14 +58,18 @@ class Primitive:
     def val(self):
         raise NotImplementedError
 
+    def _generate(self):
+        if self.weighted:
+            logging.debug('Generating weighted value')
+            self._generate_weighted_value()
+        else:
+            logging.debug('Generating value')
+            self._generate_value()
+        return self.value
+
     def __str__(self):
         if not self.is_generated:
-            if self.weighted:
-                logging.debug('Generating weighted value')
-                self._generate_weighted_value()
-            else:
-                logging.debug('Generating value')
-                self._generate_value()
+            self._generate()
         return str(self.value)
 
 

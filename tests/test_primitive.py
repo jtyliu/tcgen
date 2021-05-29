@@ -1,6 +1,6 @@
-from primitives import *
-from utils import random, InvalidRangeException
-from utils.constants import *
+from tcgen.primitives import *
+from tcgen.utils import random, InvalidRangeException
+from tcgen.utils.constants import *
 import pytest
 
 
