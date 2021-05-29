@@ -58,6 +58,7 @@ class Array(DataType):
 
         self._type = type
         self._type.__init__(*args, **kwargs)
+        self.idx = 0
         DataType.__init__(self)
 
     def _generate(self):
@@ -66,12 +67,25 @@ class Array(DataType):
             self.value.append(self._type._generate())
 
     def assign(self, *args, **kwargs):
-        self._type = self._type.__init__(*args, **kwargs)
+        self._type.__init__(*args, **kwargs)
         return self
 
     def val(self):
         super().__str__()
         return self.value
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        super().__str__()
+        try:
+            ret = self.value[self.idx]
+            self.idx += 1
+            return ret
+        except IndexError:
+            self.idx = 0
+            raise StopIteration
 
     def __str__(self):
         super().__str__()

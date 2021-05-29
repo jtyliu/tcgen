@@ -37,5 +37,12 @@ class TestArray(TestDataTypesMixin):
     def test_integer(self):
         N = Integer(5)
         M = Integer(5)
+        # Random value will be generated inside Array()
+        # Providing an integer will not generate a random length
         assert Array(N * 2).val() == [99347, 55126, 5307, 33937, 67014, 63692, 53076, 39756]
         assert Array(2 * M).val() == [46931, 76466, 28632, 66151, 18255, 36942, 18317, 99065, 12430]
+
+    def test_assign(self):
+        arr = Array(5).assign(3, 10)
+        assert list(arr) == [9, 9, 3, 7, 10]
+        assert list(arr) == [9, 9, 3, 7, 10]
