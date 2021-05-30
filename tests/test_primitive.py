@@ -1,4 +1,3 @@
-from _pytest.assertion import pytest_sessionfinish
 from tcgen.primitives import *
 from tcgen.primitives import Primitive
 from tcgen.utils import random, InvalidRangeException
@@ -117,7 +116,7 @@ class TestFloat(TestPrimitiveMixin):
     def test_multiple_args(self):
         with pytest.raises(TypeError):
             Float(1, 2, 3)
-    
+
     def test_cast(self):
         assert int(Float(1, 1e9)) == 551663718
 
@@ -164,4 +163,3 @@ class TestChar(TestPrimitiveMixin):
         Char('#')
         with pytest.raises(TypeError):
             Char('#.', [2, 1], weighted=True, inclusive=True)
-
