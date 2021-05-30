@@ -1,4 +1,6 @@
+from _pytest.assertion import pytest_sessionfinish
 from tcgen.primitives import *
+from tcgen.primitives import Primitive
 from tcgen.utils import random, InvalidRangeException
 from tcgen.utils.constants import *
 import pytest
@@ -10,6 +12,21 @@ class TestPrimitiveMixin:
         random.seed(0)
 
 
+class TestPrimitive:
+
+    def test_extra_kwargs(self):
+        # This should log a warning
+        Primitive(a=1, b=1)
+
+    def test_generate_value(self):
+        with pytest.raises(NotImplementedError):
+            Primitive()._generate_value()
+        with pytest.raises(NotImplementedError):
+            Primitive()._generate_weighted_value()
+        with pytest.raises(NotImplementedError):
+            Primitive().val()
+
+
 class TestInteger(TestPrimitiveMixin):
 
     def test_integer(self):
@@ -19,6 +36,10 @@ class TestInteger(TestPrimitiveMixin):
     def test_invalid_range(self):
         with pytest.raises(InvalidRangeException):
             Integer(1e9, 1)
+
+    def test_multiple_args(self):
+        with pytest.raises(TypeError):
+            Integer(1, 2, 3)
 
     def test_valid_integer(self):
         assert Integer(1, 1e9).int() == 906691060
@@ -35,6 +56,20 @@ class TestInteger(TestPrimitiveMixin):
         with pytest.raises(InvalidRangeException):
             Integer(1, 2, inclusive=False)
 
+    def test_arithmetic(self):
+        a = Integer(1, 3)
+        b = Integer(1, 3)
+        c = Integer(1, 3)
+        d = Integer(1, 100)
+        assert int(a + 5) == 7
+        assert int(a - 5) == 2
+        assert int(b - 5) == -3
+        assert int(b + 5) == 2
+        assert int(c * 10) == 11
+        assert int(c / 10) == 1
+        assert int(d / 10) == 4
+        assert int(d * 10) == 40
+
 
 class TestPrime(TestPrimitiveMixin):
 
@@ -48,6 +83,7 @@ class TestPrime(TestPrimitiveMixin):
 
     def test_valid_prime(self):
         assert Prime(1, 1e9).int() == 413654009
+        assert Prime(1, 1e9).val() == 955892131
 
     def test_weighted_prime(self):
         assert Prime(1, 1e9, weighted=True, wcnt=25).int() == 985946617
@@ -77,6 +113,13 @@ class TestFloat(TestPrimitiveMixin):
     def test_float(self):
         assert Float().float() == 64634.43
         assert str(Float()) == "70561.20"
+
+    def test_multiple_args(self):
+        with pytest.raises(TypeError):
+            Float(1, 2, 3)
+    
+    def test_cast(self):
+        assert int(Float(1, 1e9)) == 551663718
 
     def test_invalid_range(self):
         with pytest.raises(InvalidRangeException):
@@ -111,3 +154,14 @@ class TestChar(TestPrimitiveMixin):
         assert Char('#.', [2, 1], weighted=True, wcnt=10).char() == '.'
         assert Char('#.', weighted=True, wcnt=10).char() == '#'
         assert Char('#.', weighted=True, wcnt=-10).char() == '.'
+
+    def test_invalid_permutation(self):
+        with pytest.raises(TypeError):
+            Char('#.', [3, 1, 2], weighted=True)
+        with pytest.raises(TypeError):
+            Char('#.', [0, 1], weighted=True)
+        Char('#.', [2, 1])
+        Char('#')
+        with pytest.raises(TypeError):
+            Char('#.', [2, 1], weighted=True, inclusive=True)
+

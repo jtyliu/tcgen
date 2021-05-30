@@ -186,6 +186,9 @@ class random():
         '''
         if len(char_set) == 0:
             raise TypeError
+        if len(char_set) != len(priority):
+            raise TypeError
+
         ret = random.randint(1, len(char_set))
         for _ in range(abs(wcnt)):
             if wcnt > 0:

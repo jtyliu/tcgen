@@ -1,14 +1,24 @@
 from tcgen.datatypes import *
+from tcgen.datatypes import DataType
 from tcgen.primitives import *
 from tcgen.utils import random
 from tcgen.utils.constants import *
-# import pytest
+import pytest
 
 
 class TestDataTypesMixin:
 
     def setup_method(self):
         random.seed(0)
+
+
+class TestDataTypes(TestDataTypesMixin):
+
+    def test_generate(self):
+        with pytest.raises(NotImplementedError):
+            DataType()._generate()
+        with pytest.raises(NotImplementedError):
+            DataType().val()
 
 
 class TestArray(TestDataTypesMixin):
@@ -55,6 +65,12 @@ class TestArray(TestDataTypesMixin):
         assert list(arr) == [9, 9, 3, 7, 10]
         for test, val in zip(arr, [9, 9, 3, 7, 10]):
             assert test == val
+        for idx in range(5):
+            arr[idx] == [9, 9, 3, 7, 10][idx]
+
+    def test_type(self):
+        with pytest.raises(TypeError):
+            Array(10, type=DataType())
 
 
 class TestString(TestDataTypesMixin):

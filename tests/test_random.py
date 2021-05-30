@@ -72,7 +72,37 @@ class TestRandom:
         assert random.choice(LOWERCASE) == 'i'
 
     def test_wchoice(self):
-        with pytest.raises(TypeError):
-            random.wchoice('')
         assert random.wchoice(LOWERCASE, list(range(1, len(LOWERCASE) + 1)), wcnt=10) == 'a'
         assert random.wchoice(LOWERCASE, list(range(1, len(LOWERCASE) + 1)), wcnt=-50) == 'z'
+        with pytest.raises(TypeError):
+            random.wchoice('', [], wcnt=-50)
+
+        with pytest.raises(TypeError):
+            random.wchoice('aaa', [], wcnt=-50)
+
+    def test_randprime(self):
+        with pytest.raises(TypeError):
+            random.randprime()
+        with pytest.raises(TypeError):
+            random.randprime(1, 2, 3, 4)
+        with pytest.raises(InvalidRangeException):
+            random.randprime(10, 1)
+        with pytest.raises(InvalidRangeException):
+            random.randprime(1, 2, False)
+        assert random.randprime(1, 100000) == 50497
+        assert random.randprime(L=12345, U=123456) == 111697
+        assert random.randprime(1, 3, False) == 2
+
+    def test_wrandprime(self):
+        with pytest.raises(TypeError):
+            random.wrandprime()
+        with pytest.raises(InvalidRangeException):
+            random.wrandprime(10, 1)
+        with pytest.raises(InvalidRangeException):
+            random.wrandprime(1, 2, inclusive=False)
+        with pytest.raises(ValueError):
+            random.wrandprime(8, 10)
+        assert random.wrandprime(1, 100000) == 99347
+        assert random.wrandprime(1, 3, inclusive=False) == 2
+        assert random.wrandprime(1, 100000, -10) == 12433
+

@@ -52,14 +52,14 @@ class ArithmeticMixin:
 
     __rmul__ = __mul__
 
-    def __div__(self, val):
+    def __floordiv__(self, val):
         if self.is_generated:
             return self.value / val
-        self.L /= val
-        self.U /= val
+        self.L //= val
+        self.U //= val
         return self
 
-    __rdiv__ = __div__
+    __truediv__ = __floordiv__
 
 
 class Primitive:
@@ -74,7 +74,7 @@ class Primitive:
         **kwargs
     ):
         if kwargs:
-            logging.info('Recieved extra kwargs: ' + str(kwargs))
+            logging.warning('Recieved extra kwargs: ' + str(kwargs))
 
         if self.L and self.U:
             if self._inclusive is not None:
@@ -291,9 +291,9 @@ class Char(Primitive):
 
         self.char_set = char_set
         if len(priority):
-            self.priority = [0] * (len(char_set) + 1)
+            self.priority = [0] * (len(char_set))
             for k, v in enumerate(priority):
-                self.priority[v] = k + 1
+                self.priority[v - 1] = k + 1
         else:
             self.priority = list(range(1, len(char_set) + 1))
 
