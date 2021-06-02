@@ -91,6 +91,11 @@ class Array(DataType):
         for _ in range(self.N):
             self.value.append(self._type._generate())
 
+    def shuffle(self):
+        super().__str__()
+        random.shuffle(self.value)
+        return self
+
     def assign(self, *args, **kwargs):
         self._type.__init__(*args, **kwargs)
         return self
@@ -213,12 +218,9 @@ class Permutation(Array):
         # TODO
         Array.__init__(self, N, N)
 
-        if not issubclass(self._type.__class__, Integer):
-            raise TypeError
-
     def _generate(self):
         self.value = []
         tot_vals = self._type._total_values()
         for idx in range(1, tot_vals + 1):
             self.value.append(self._type._kth_smallest(idx))
-        random.shuffle(self.value)
+        self.shuffle()
