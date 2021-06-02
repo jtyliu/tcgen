@@ -7,6 +7,7 @@ from tcgen.utils.random import *
 __all__ = [
     'Array',
     'String',
+    'NonDecreasing',
     'StrictlyIncreasing',
 ]
 
@@ -134,19 +135,33 @@ class String(Array):
         return self.value
 
 
-class StrictlyIncreasing(Array):
+class NonDecreasing(Array):
 
-    def __init__(self, N: int, *args, type: Primitive = Integer(), **kwargs):
-        # Primitives needs to handle checks on whether there's enough numbers to generate for strictly increasing
-        Array.__init__(self, N, *args, type=type, **kwargs)
+    def __init__(self, N: int, *args, **kwargs):
+        Array.__init__(self, N, *args, **kwargs)
 
         if not issubclass(self._type.__class__, SortableMixin):
             raise TypeError
+
+    def _generate(self):
+        self.value = []
+        for _ in range(self.N):
+            self.value.append(self._type._generate())
+        self.value.sort()
+
+
+class StrictlyIncreasing(NonDecreasing):
+
+    def __init__(self, N: int, *args, **kwargs):
+        NonDecreasing.__init__(self, N, *args, type=type, **kwargs)
 
         if N > self._type._total_values():
             raise ValueError('Asked for more values than can generate')
 
     def _generate(self):
+        # Bad memory comlpextity
+        # O(max(a_i))
+        # TODO: There's a better O(N) solution, using a nested binary search
         tot_vals = self._type._total_values()
         bit = [0] * (tot_vals + 1)
 

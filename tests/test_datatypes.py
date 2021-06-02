@@ -87,6 +87,7 @@ class TestStrictlyIncreasing(TestDataTypesMixin):
     def test_strictlyincreasing(self):
         assert StrictlyIncreasing(5, Float(100, 110)).val() == [103.94, 104.31, 107.77, 108.64, 109.14]
         assert StrictlyIncreasing(5, Integer(100, 110)).val() == [100, 104, 105, 109, 110]
+        assert StrictlyIncreasing(5, Prime(1, 10000)).val() == [3167, 5563, 7699, 8269, 9697]
         with pytest.raises(ValueError):
             StrictlyIncreasing(1000, Integer(100, 110))
         with pytest.raises(TypeError):
