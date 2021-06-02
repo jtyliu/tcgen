@@ -105,4 +105,3 @@ class TestRandom:
         assert random.wrandprime(1, 100000) == 99347
         assert random.wrandprime(1, 3, inclusive=False) == 2
         assert random.wrandprime(1, 100000, -10) == 12433
-

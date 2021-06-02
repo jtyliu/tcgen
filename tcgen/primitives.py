@@ -1,5 +1,6 @@
 from tcgen.utils.constants import LOWERCASE
 from tcgen.utils import random, InvalidRangeException
+import sympy
 import logging
 
 __all__ = [
@@ -21,6 +22,20 @@ class InclusiveMixin:
     def exclusive(self):
         self._inclusive = False
         return self
+
+
+class SortableMixin:
+
+    def _total_values(self):
+        '''Returns the number of possible values it can generate'''
+        raise NotImplementedError
+
+    def _kth_smallest(self, k):
+        '''
+        Returns the kth smallest value it can generate
+        1 <= k <= self._total_values()
+        '''
+        raise NotImplementedError
 
 
 class ArithmeticMixin:
@@ -121,7 +136,7 @@ class Primitive:
         return str(self.value)
 
 
-class Integer(Primitive, InclusiveMixin, ArithmeticMixin):
+class Integer(Primitive, InclusiveMixin, ArithmeticMixin, SortableMixin):
     def __init__(
         self,
         *args: int,
@@ -147,6 +162,18 @@ class Integer(Primitive, InclusiveMixin, ArithmeticMixin):
 
     def _generate_value(self, **kwargs):
         self.value = random.randint(self.L, self.U, **kwargs)
+
+    def _total_values(self):
+        if self._inclusive:
+            return self.U - self.L + 1
+        return self.U - self.L - 1
+
+    def _kth_smallest(self, k: int):
+        if k < 1 or k > self._total_values():
+            raise IndexError("k outside of bounds")
+        if self._inclusive:
+            return self.L + k - 1
+        return self.L + k
 
     def val(self):
         self.__str__()
@@ -196,6 +223,24 @@ class Prime(Integer):
     def _generate_value(self, **kwargs):
         self.value = random.randprime(self.L, self.U, **kwargs)
 
+    def _total_values(self):
+        '''
+        Get number of primes between range
+
+        !! Slow function !!
+        '''
+        if self._inclusive:
+            return len(list(sympy.primerange(self.L, self.U + 1)))
+        return len(list(sympy.primerange(self.L + 1, self.U)))
+
+    def _kth_smallest(self, k: int):
+        if k < 1 or k > self._total_values():
+            raise IndexError("k outside of bounds")
+        # TODO: take advantage of generator to reduce from all primes generated, only the first k primes
+        if self._inclusive:
+            return list(sympy.primerange(self.L, self.U + 1))[k - 1]
+        return list(sympy.primerange(self.L + 1, self.U))[k - 1]
+
     def val(self):
         return super().val()
 
@@ -217,7 +262,7 @@ class Bool(Integer):
 #         return [Bool(*args, **kwargs) for _ in range(num)]
 
 
-class Float(Primitive, InclusiveMixin, ArithmeticMixin):
+class Float(Primitive, InclusiveMixin, ArithmeticMixin, SortableMixin):
     def __init__(
         self,
         *args: float,
@@ -245,6 +290,21 @@ class Float(Primitive, InclusiveMixin, ArithmeticMixin):
 
     def _generate_value(self, **kwargs):
         self.value = random.randfloat(self.L, self.U, places=self.places, **kwargs)
+
+    def _total_values(self):
+        L_i = int(self.L * 10**self.places)
+        U_i = int(self.U * 10**self.places)
+        if self._inclusive:
+            return U_i - L_i + 1
+        return U_i - L_i - 1
+
+    def _kth_smallest(self, k):
+        if k < 1 or k > self._total_values():
+            raise IndexError("k outside of bounds")
+        L_i = int(self.L * 10**self.places)
+        if self._inclusive:
+            return (L_i + k - 1) / (10**self.places)
+        return (L_i + k) / (10**self.places)
 
     def __str__(self):
         super().__str__()

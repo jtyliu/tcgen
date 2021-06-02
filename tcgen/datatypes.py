@@ -1,10 +1,13 @@
 from tcgen.utils.constants import LOWERCASE
 from tcgen.primitives import *
+from tcgen.primitives import SortableMixin
+from tcgen.utils.random import *
 
 
 __all__ = [
     'Array',
     'String',
+    'StrictlyIncreasing',
 ]
 
 
@@ -47,6 +50,9 @@ class Array(DataType):
             Array(N, type=Float(3))
             Array(N, 0, 1e4, type=Float()) # The bounds passed overwrite Float() bounds
             Array(N, 1e4, type=Float()) # The bounds passed overwrite Float() bounds
+        Not implemented yet
+            Array(N, Integer(3))
+            Array(N, 0, 1e4, Integer(3))
         '''
         # Most likely need to remove this later on for List()
         # if not isinstance(N, (int, float, Integer)):
@@ -55,11 +61,26 @@ class Array(DataType):
         # This too.
         self.N = int(N)
 
+        parse_idx = -1
+        for idx, val in enumerate(args):
+            if issubclass(val.__class__, Primitive):
+                parse_idx = idx
+
+        if parse_idx != -1:
+            type = args[parse_idx]
+            args = list(args)
+            args.pop(parse_idx)
+            args = tuple(args)
+
         if not issubclass(type.__class__, Primitive):
             raise TypeError
 
         self._type = type
-        self._type.__init__(*args, **kwargs)
+        if parse_idx == -1:
+            self._type.__init__(*args, **kwargs)
+        else:
+            if len(args) != 0 or len(kwargs) != 0:
+                self._type.__init__(*args, **kwargs)
         self.idx = 0
         DataType.__init__(self)
 
@@ -111,3 +132,49 @@ class String(Array):
     def __str__(self):
         super().__str__()
         return self.value
+
+
+class StrictlyIncreasing(Array):
+
+    def __init__(self, N: int, *args, type: Primitive = Integer(), **kwargs):
+        # Primitives needs to handle checks on whether there's enough numbers to generate for strictly increasing
+        Array.__init__(self, N, *args, type=type, **kwargs)
+
+        if not issubclass(self._type.__class__, SortableMixin):
+            raise TypeError
+
+        if N > self._type._total_values():
+            raise ValueError('Asked for more values than can generate')
+
+    def _generate(self):
+        tot_vals = self._type._total_values()
+        bit = [0] * (tot_vals + 1)
+
+        def update(idx, val):
+            while idx <= tot_vals:
+                bit[idx] += val
+                idx += idx & -idx
+
+        def query(idx):
+            ret = 0
+            while idx:
+                ret += bit[idx]
+                idx -= idx & -idx
+            return ret
+
+        for idx in range(1, tot_vals + 1):
+            update(idx, 1)
+
+        self.value = []
+        for cnt in range(self.N):
+            to_pick = random.randint(1, tot_vals - cnt)
+            l_ptr, r_ptr = 1, tot_vals
+            while l_ptr <= r_ptr:
+                m_ptr = (l_ptr + r_ptr) // 2
+                if query(m_ptr) < to_pick:
+                    l_ptr = m_ptr + 1
+                else:
+                    r_ptr = m_ptr - 1
+            update(l_ptr, -1)
+            self.value.append(self._type._kth_smallest(l_ptr))
+        self.value.sort()

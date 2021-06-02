@@ -46,6 +46,8 @@ class TestArray(TestDataTypesMixin):
         assert Array(N, weighted=True).val() == [95893, 91449, 88632, 87243, 89297, 86196, 97200, 96865, 99899, 88265]
         assert Array(N, 1e9, weighted=True).val() == [803680594, 890027575, 750097452, 939978709, 939027650, 829128097, 753247254, 975000373, 949053721, 899513086]
         assert Array(N, U=1e9, weighted=True).val() == [939541626, 899203368, 728549939, 883401125, 657196529, 938078652, 990816454, 981272369, 924878154, 877540437]
+        assert Array(N, Integer(3)).val() == [1, 1, 2, 1, 1, 1, 1, 3, 2, 3]
+        assert Array(N, 0, 1e4, Integer(3)).val() == [5156, 6011, 9297, 688, 9954, 8101, 7514, 7134, 6102, 8813]
 
     def test_integer(self):
         N = Integer(5)
@@ -78,3 +80,14 @@ class TestString(TestDataTypesMixin):
     def test_string(self):
         assert str(String(10)) == 'mynbiqpmzj'
         assert str(String(10, char_set=UPPERCASE)) == 'PLSGQEJEYD'
+
+
+class TestStrictlyIncreasing(TestDataTypesMixin):
+
+    def test_strictlyincreasing(self):
+        assert StrictlyIncreasing(5, Float(100, 110)).val() == [103.94, 104.31, 107.77, 108.64, 109.14]
+        assert StrictlyIncreasing(5, Integer(100, 110)).val() == [100, 104, 105, 109, 110]
+        with pytest.raises(ValueError):
+            StrictlyIncreasing(1000, Integer(100, 110))
+        with pytest.raises(TypeError):
+            StrictlyIncreasing(10, Char())

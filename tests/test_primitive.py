@@ -1,5 +1,5 @@
 from tcgen.primitives import *
-from tcgen.primitives import Primitive
+from tcgen.primitives import Primitive, SortableMixin
 from tcgen.utils import random, InvalidRangeException
 from tcgen.utils.constants import *
 import pytest
@@ -9,6 +9,15 @@ class TestPrimitiveMixin:
 
     def setup_method(self):
         random.seed(0)
+
+
+class TestSortableMixin:
+
+    def test_not_implemented(self):
+        with pytest.raises(NotImplementedError):
+            SortableMixin()._total_values()
+        with pytest.raises(NotImplementedError):
+            SortableMixin()._kth_smallest(1)
 
 
 class TestPrimitive:
@@ -55,6 +64,18 @@ class TestInteger(TestPrimitiveMixin):
         with pytest.raises(InvalidRangeException):
             Integer(1, 2, inclusive=False)
 
+    def test_total_values(self):
+        assert Integer(1, 100)._total_values() == 100
+        assert Integer(1, 100, inclusive=False)._total_values() == 98
+
+    def test_kth_smallest(self):
+        assert Integer(1, 100)._kth_smallest(15) == 15
+        assert Integer(1, 100, inclusive=False)._kth_smallest(30) == 31
+        with pytest.raises(IndexError):
+            Integer(1, 100, inclusive=True)._kth_smallest(0)
+        with pytest.raises(IndexError):
+            Integer(1, 100, inclusive=True)._kth_smallest(1000)
+
     def test_arithmetic(self):
         a = Integer(1, 3)
         b = Integer(1, 3)
@@ -88,6 +109,18 @@ class TestPrime(TestPrimitiveMixin):
         assert Prime(1, 1e9, weighted=True, wcnt=25).int() == 985946617
         assert Prime(1, 1e9, weighted=True).int() == 976832621
         assert Prime(1, 1e9, weighted=True, wcnt=-10).int() == 79180349
+
+    def test_total_values(self):
+        assert Prime(1, 100)._total_values() == 25
+        assert Prime(5, 100, inclusive=False)._total_values() == 22
+
+    def test_kth_smallest(self):
+        assert Prime(1, 100)._kth_smallest(15) == 47
+        assert Prime(1, 100, inclusive=False)._kth_smallest(3) == 5
+        with pytest.raises(IndexError):
+            Prime(1, 100, inclusive=True)._kth_smallest(0)
+        with pytest.raises(IndexError):
+            Prime(1, 100, inclusive=True)._kth_smallest(1000)
 
     def test_exclusive(self):
         assert Prime(1, 5, inclusive=False).int() == 3
@@ -131,6 +164,18 @@ class TestFloat(TestPrimitiveMixin):
         assert Float(1, 1e9, weighted=True, wcnt=25).float() == 987103120.89
         assert Float(1, 1e9, weighted=True).float() == 998318371.34
         assert Float(1, 1e9, weighted=True, wcnt=-10).float() == 105139493.52
+
+    def test_total_values(self):
+        assert Float(1, 100)._total_values() == 9901
+        assert Float(5, 100, inclusive=False)._total_values() == 9499
+
+    def test_kth_smallest(self):
+        assert Float(1, 100)._kth_smallest(15) == 1.14
+        assert Float(1, 100, inclusive=False)._kth_smallest(3) == 1.03
+        with pytest.raises(IndexError):
+            Float(1, 100, inclusive=True)._kth_smallest(0)
+        with pytest.raises(IndexError):
+            Float(1, 100, inclusive=True)._kth_smallest(10000)
 
     def test_exclusive(self):
         assert Float(1, 3, inclusive=False).float() == 1.99
