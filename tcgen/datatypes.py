@@ -9,6 +9,7 @@ __all__ = [
     'String',
     'NonDecreasing',
     'StrictlyIncreasing',
+    'Permutation',
 ]
 
 
@@ -204,7 +205,20 @@ class StrictlyIncreasing(NonDecreasing):
         self._sort()
 
 
-# class Permutation(Array):
+class Permutation(Array):
 
-#     def __init__(self, N: int, *args, **kwargs):
-#         pass
+    def __init__(self, N: int):
+        # For now, it's 1 indexed.
+        # Later on, I should consider if I should suppport other types
+        # TODO
+        Array.__init__(self, N, N)
+
+        if not issubclass(self._type.__class__, Integer):
+            raise TypeError
+
+    def _generate(self):
+        self.value = []
+        tot_vals = self._type._total_values()
+        for idx in range(1, tot_vals + 1):
+            self.value.append(self._type._kth_smallest(idx))
+        random.shuffle(self.value)

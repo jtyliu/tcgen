@@ -254,3 +254,18 @@ class random():
             if wcnt < 0:
                 ret = min(ret, random.randprime(L, U, inclusive))
         return ret
+
+    @staticmethod
+    def shuffle(arr: list) -> list:
+        '''
+        Randomly shuffles a list
+
+        Args:
+            arr: list to shuffle
+
+        Returns:
+            Shuffled list
+        '''
+
+        random_pkg.shuffle(arr)
+        return arr

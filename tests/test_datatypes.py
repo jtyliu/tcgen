@@ -100,3 +100,9 @@ class TestStrictlyIncreasing(TestDataTypesMixin):
             StrictlyIncreasing(1000, Integer(100, 110))
         with pytest.raises(TypeError):
             StrictlyIncreasing(10, Char())
+
+
+class TestPermutation(TestDataTypesMixin):
+
+    def test_permutation(self):
+        assert Permutation(10).val() == [8, 9, 2, 6, 4, 5, 3, 1, 10, 7]
