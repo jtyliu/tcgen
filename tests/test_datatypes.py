@@ -82,6 +82,14 @@ class TestString(TestDataTypesMixin):
         assert str(String(10, char_set=UPPERCASE)) == 'PLSGQEJEYD'
 
 
+class TestNonDecreasing(TestDataTypesMixin):
+
+    def test_nondecreasing(self):
+        assert NonDecreasing(5, Prime(1000, 10000)).val() == [1663, 5261, 7901, 8963, 9377]
+        assert NonDecreasing(5, Prime(1000, 10000), increasing=False).val() == [9277, 8819, 6869, 5981, 4583]
+        assert str(NonDecreasing(5, Prime(1000, 10000), increasing=False)) == '9733 5623 5107 3299 2557'
+
+
 class TestStrictlyIncreasing(TestDataTypesMixin):
 
     def test_strictlyincreasing(self):

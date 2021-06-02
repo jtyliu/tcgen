@@ -47,13 +47,12 @@ class Array(DataType):
             Array(N, U=1e4)
             Array(N, L=0, U=1e4)
             Array(N, 0, 1e4)
+            Array(N, Integer(3))
+            Array(N, 0, 1e4, Integer(3))
             Array(N, type=Integer(3))
             Array(N, type=Float(3))
             Array(N, 0, 1e4, type=Float()) # The bounds passed overwrite Float() bounds
             Array(N, 1e4, type=Float()) # The bounds passed overwrite Float() bounds
-        Not implemented yet
-            Array(N, Integer(3))
-            Array(N, 0, 1e4, Integer(3))
         '''
         # Most likely need to remove this later on for List()
         # if not isinstance(N, (int, float, Integer)):
@@ -80,6 +79,7 @@ class Array(DataType):
         if parse_idx == -1:
             self._type.__init__(*args, **kwargs)
         else:
+            # Only override default args passed to type is bounds are passed
             if len(args) != 0 or len(kwargs) != 0:
                 self._type.__init__(*args, **kwargs)
         self.idx = 0
@@ -137,7 +137,9 @@ class String(Array):
 
 class NonDecreasing(Array):
 
-    def __init__(self, N: int, *args, **kwargs):
+    def __init__(self, N: int, *args, increasing: bool = True, **kwargs):
+        self.increasing = increasing
+
         Array.__init__(self, N, *args, **kwargs)
 
         if not issubclass(self._type.__class__, SortableMixin):
@@ -147,13 +149,19 @@ class NonDecreasing(Array):
         self.value = []
         for _ in range(self.N):
             self.value.append(self._type._generate())
-        self.value.sort()
+        self._sort()
+
+    def _sort(self):
+        self.value.sort(reverse=not self.increasing)
+
+    def __str__(self):
+        return super().__str__()
 
 
 class StrictlyIncreasing(NonDecreasing):
 
     def __init__(self, N: int, *args, **kwargs):
-        NonDecreasing.__init__(self, N, *args, type=type, **kwargs)
+        NonDecreasing.__init__(self, N, *args, **kwargs)
 
         if N > self._type._total_values():
             raise ValueError('Asked for more values than can generate')
@@ -161,7 +169,8 @@ class StrictlyIncreasing(NonDecreasing):
     def _generate(self):
         # Bad memory comlpextity
         # O(max(a_i))
-        # TODO: There's a better O(N) solution, using a nested binary search
+        # TODO: There's a better O(N) memory solution, using a nested binary search
+        # We need a DS which supports O(logn) insertion and sorting
         tot_vals = self._type._total_values()
         bit = [0] * (tot_vals + 1)
 
@@ -192,4 +201,10 @@ class StrictlyIncreasing(NonDecreasing):
                     r_ptr = m_ptr - 1
             update(l_ptr, -1)
             self.value.append(self._type._kth_smallest(l_ptr))
-        self.value.sort()
+        self._sort()
+
+
+# class Permutation(Array):
+
+#     def __init__(self, N: int, *args, **kwargs):
+#         pass
