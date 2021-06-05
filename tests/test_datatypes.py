@@ -139,3 +139,9 @@ class TestTree(TestDataTypesMixin):
 
     def test_tree(self):
         assert Tree(10).val() == [(2, 7), (3, 7), (4, 1), (1, 5), (6, 9), (9, 8), (8, 7), (7, 5), (8, 6)]
+
+
+class TestLineGraph(TestDataTypesMixin):
+
+    def test_linegraph(self):
+        assert LineGraph(10).val() == [(7, 8), (8, 9), (9, 2), (2, 6), (6, 4), (4, 5), (5, 3), (3, 1), (6, 10)]

@@ -13,6 +13,7 @@ __all__ = [
     'Permutation',
     'Graph',
     'Tree',
+    'LineGraph',
 ]
 
 
@@ -273,12 +274,15 @@ class Graph(DataType):
             return (u, v, self.W._generate())
         return (u, v)
 
+    def _generate_prufer(self):
+        return Array(self.N - 2, Integer(1, self.N)).val()
+
     def _generate(self):
         self.value = []
         logging.info('Generating tree')
         if self.connected:
             # https://cp-algorithms.com/graph/pruefer_code.html
-            prufer = Array(self.N - 2, Integer(1, self.N)).val()
+            prufer = self._generate_prufer()
             degree = [0] + [1] * (self.N)
             for val in prufer:
                 degree[val] += 1
@@ -323,5 +327,13 @@ class Graph(DataType):
 
 
 class Tree(Graph):
-    def __init__(self, N: int, W: Primitive = None, *, dag: bool = False):
-        Graph.__init__(self, N, N - 1, W, dag=dag)
+    def __init__(self, N: int, W: Primitive = None):
+        Graph.__init__(self, N, N - 1, W)
+
+
+class LineGraph(Tree):
+    def __init__(self, N: int, W: Primitive = None):
+        Tree.__init__(self, N, W)
+
+    def _generate_prufer(self):
+        return Permutation(self.N).val()[:self.N - 2]
