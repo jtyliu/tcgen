@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 import sys
 import argparse
+# import subprocess
 
 
 def main(arguments):
 
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('infile', help="Input file", type=argparse.FileType('r'))
+    parser = argparse.ArgumentParser(description='Generate test cases')
+    parser.add_argument('file', help="Input file", type=argparse.FileType('r'))
     parser.add_argument('-o', '--outfile', help="Output file",
                         default=sys.stdout, type=argparse.FileType('w'))
 

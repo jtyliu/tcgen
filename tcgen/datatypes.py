@@ -36,6 +36,11 @@ class DataType:
             self._generate()
         return str(self.value)
 
+    def shuffle(self):
+        self.val()
+        random.shuffle(self.value)
+        return self
+
 
 class Array(DataType):
     def __init__(self, N: int, *args, type: Primitive = Integer(), **kwargs):
@@ -94,11 +99,6 @@ class Array(DataType):
         self.value = []
         for _ in range(self.N):
             self.value.append(self._type._generate())
-
-    def shuffle(self):
-        super().__str__()
-        random.shuffle(self.value)
-        return self
 
     def assign(self, *args, **kwargs):
         self._type.__init__(*args, **kwargs)
