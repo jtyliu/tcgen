@@ -5,6 +5,8 @@ from tcgen.utils.random import *
 import logging
 
 
+# TODO: Add a parent class for DataType and Primitive to allow String to work as a primitive
+# Graph(10, 12, String(3)) should work as intended
 __all__ = [
     'Array',
     'String',
