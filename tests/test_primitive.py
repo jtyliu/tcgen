@@ -34,6 +34,10 @@ class TestPrimitive:
         with pytest.raises(NotImplementedError):
             Primitive().val()
 
+    def test_default(self):
+        with pytest.raises(NotImplementedError):
+            Primitive().default()
+
 
 class TestInteger(TestPrimitiveMixin):
 
@@ -67,6 +71,9 @@ class TestInteger(TestPrimitiveMixin):
     def test_total_values(self):
         assert Integer(1, 100)._total_values() == 100
         assert Integer(1, 100, inclusive=False)._total_values() == 98
+
+    def test_default(self):
+        assert Integer().default() == 0
 
     def test_kth_smallest(self):
         assert Integer(1, 100)._kth_smallest(15) == 15
@@ -188,6 +195,12 @@ class TestFloat(TestPrimitiveMixin):
         assert Float(1, 3, places=5).float() == 2.00989
         assert Float(1, 3, places=1).float() == 2.3
 
+    def test_round(self):
+        assert Float(1, 3, places=5).round() == 2
+        assert Float(1, 3, places=2).round(1) == 2.9
+        assert round(Float(1, 100, places=2)) == 70
+        assert round(Float(1, 100, places=5), 2) == 7.79
+
 
 class TestChar(TestPrimitiveMixin):
     def test_char(self):
@@ -208,3 +221,6 @@ class TestChar(TestPrimitiveMixin):
         Char('#')
         with pytest.raises(TypeError):
             Char('#.', [2, 1], weighted=True, inclusive=True)
+
+    def test_default(self):
+        assert Char().default() == 'a'

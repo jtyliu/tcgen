@@ -70,6 +70,20 @@ class TestArray(TestDataTypesMixin):
         for idx in range(5):
             arr[idx] == [9, 9, 3, 7, 10][idx]
 
+    def test_add(self):
+        assert Array(5, 10).add(1000).val() == [1007, 1007, 1001, 1005, 1009]
+        arr = Array(5, 10)
+        list(arr)  # Force an array generation
+        assert arr.add(1000).val() == [1008, 1007, 1005, 1008, 1006]
+
+    def test_add_primitive(self):
+        assert Array(5, 10).add(Integer(1000, 10000)).val() == [7318, 7312, 7316, 7320, 7319]
+        arr = Array(5, 10)
+        list(arr)  # Force an array generation
+        assert arr.add(Integer(-10000, -100)).val() == [-12837, -3459, -15430, -10760, -15412]
+        with pytest.raises(TypeError):
+            Array(5, Char()).add(100)
+
     def test_type(self):
         with pytest.raises(TypeError):
             Array(10, type=DataType())
@@ -132,7 +146,12 @@ class TestGraph(TestDataTypesMixin):
         assert str(Graph(4, 5)) == '2 1\n1 4\n3 2\n3 1\n3 3'
         with open('tests/data/testgraph.1.in', 'r') as f:
             assert str(Graph(10000, 20000)) == f.read()
-        assert str(Graph(4, 5, dag=True)) == '1 2\n1 3\n3 4\n1 4\n2 3'
+
+    def test_adjmatrix(self):
+        assert Graph(10, 9).adj_matrix().val() == [[0, 0, 0, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 0], [0, 1, 1, 0, 1, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 1, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+        assert str(Graph(10, 9).adj_matrix()) == '0 0 0 0 0 0 0 0 0 1\n0 0 1 0 0 0 0 0 0 1\n0 1 0 0 1 0 1 0 0 0\n0 0 0 0 0 1 0 0 1 0\n0 0 1 0 0 0 0 1 1 0\n0 0 0 1 0 0 0 0 0 0\n0 0 1 0 0 0 0 0 0 0\n0 0 0 0 1 0 0 0 0 0\n0 0 0 1 1 0 0 0 0 0\n1 1 0 0 0 0 0 0 0 0'
+        with pytest.raises(NotImplementedError):
+            Graph(10, 9, Integer()).adj_matrix()
 
 
 class TestTree(TestDataTypesMixin):
@@ -145,3 +164,23 @@ class TestLineGraph(TestDataTypesMixin):
 
     def test_linegraph(self):
         assert LineGraph(10).val() == [(7, 8), (8, 9), (9, 2), (2, 6), (6, 4), (4, 5), (5, 3), (3, 1), (6, 10)]
+
+
+class TestGrid(TestDataTypesMixin):
+
+    def test_grid(self):
+        with pytest.raises(TypeError):
+            Grid(3, 4, Array(5))
+
+        assert Grid(3, 4).val() == [[1, 1, 0, 1], [1, 1, 1, 1], [1, 0, 0, 1]]
+        assert str(Grid(3, 4)) == '0 0 1 0\n1 0 0 1\n1 0 1 1'
+        assert Grid(3, 4).set(0).val() == [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+        assert Grid(3, 4)[0][0] == 1
+
+
+class TestDAG(TestDataTypesMixin):
+
+    def test_dag(self):
+        with pytest.raises(TypeError):
+            DAG(5, 10, self_edge=True)
+        assert DAG(5, 10).val() == [(2, 4), (3, 4), (1, 4), (3, 5), (2, 5), (2, 3), (1, 2), (5, 5), (1, 1), (1, 5)]

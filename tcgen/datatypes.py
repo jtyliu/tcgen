@@ -16,6 +16,8 @@ __all__ = [
     'Graph',
     'Tree',
     'LineGraph',
+    'Grid',
+    'DAG',
 ]
 
 
@@ -103,6 +105,7 @@ class Array(DataType):
             self.value.append(self._type._generate())
 
     def assign(self, *args, **kwargs):
+        # TODO: Allow primitive to be passed to overwrite self._type
         self._type.__init__(*args, **kwargs)
         return self
 
@@ -110,6 +113,27 @@ class Array(DataType):
         self.N = int(self.N)
         super().__str__()
         return self.value
+
+    def add(self, val):
+        '''
+        Add a value to every element
+
+        Args:
+            val: value to add, accepts primitive data types and Primitive objects
+        '''
+        try:
+            if self.is_generated:
+                for idx in range(self.N):
+                    if isinstance(val, Primitive):
+                        self.value[idx] += val._generate()
+                    self.value[idx] += val
+            else:
+                if isinstance(val, Primitive):
+                    val = val.val()
+                self._type += val
+        except TypeError:
+            raise TypeError(f'Unable to add value {val} to type {self._type.__class__}')
+        return self
 
     def __iter__(self):
         return self
@@ -233,10 +257,53 @@ class Permutation(Array):
         self.shuffle()
 
 
+class Grid(DataType):
+
+    def __init__(self, H: int, W: int, type: Primitive = Bool(), *, space_seperated: bool = True):
+        '''0-indexed grid'''
+        # TODO: support 1-indexed
+        # TODO: support default values
+        if not issubclass(type.__class__, Primitive):
+            raise TypeError
+
+        self.H = H
+        self.W = W
+        self._type = type
+        self.space_seperated = space_seperated
+        DataType.__init__(self)
+
+    def _generate(self):
+        # H rows, W elements in each row
+        # Defined based off of https://dmoj.ca/problem/dph
+        self.value = [[self._type.default()] * self.W for _ in range(self.H)]
+        for r in range(self.H):
+            for c in range(self.W):
+                self.value[r][c] = self._type._generate()
+
+    def set(self, val):
+        '''Set all values in grid'''
+        self.value = [[val] * self.W for _ in range(self.H)]
+        return self
+
+    def val(self):
+        self.H = int(self.H)
+        self.W = int(self.W)
+        super().__str__()
+        return self.value
+
+    def __str__(self):
+        self.val()
+        seperator = ' ' if self.space_seperated else ''
+        ret = [seperator.join(map(str, arr)) for arr in self.value]
+        return '\n'.join(ret)
+
+    def __getitem__(self, idx):
+        self.val()
+        return self.value[idx]
+
+
 class Graph(DataType):
-    # weighted = False
-    # connected = True
-    # directed = False
+    # TODO: Add shuffle_nodes
     def __init__(
         self,
         N: int,
@@ -245,7 +312,7 @@ class Graph(DataType):
         *,
         connected: bool = True,
         duplicate: bool = False,
-        dag: bool = False,
+        directed: bool = False,
         self_edge: bool = False,
     ):
         if connected and M < N - 1:
@@ -257,21 +324,16 @@ class Graph(DataType):
         if W and not issubclass(W.__class__, Primitive):
             raise TypeError('Weight passed is not a primitive data type')
 
-        if dag and self_edge:
-            raise TypeError('A dag cannot have self loops')
-
         self.N = N
         self.M = M
         self.W = W
-        self.dag = dag
+        self.directed = directed
         self.connected = connected
         self.self_edge = self_edge
         self.duplicate = duplicate
         DataType.__init__(self)
 
     def _make_edge(self, u, v):
-        if self.dag and u > v:
-            u, v = v, u
         if self.W:
             return (u, v, self.W._generate())
         return (u, v)
@@ -306,6 +368,7 @@ class Graph(DataType):
         value_set = set(self.value)
         integer = Integer(1, self.N)
         logging.info('Generating the rest of the edges')
+        # TODO: improve generation by doing O(N^2) is N is small enough
         for _ in range(len(self.value), self.M):
             u, v = integer._generate(), integer._generate()
             while not self.self_edge and u == v:
@@ -315,6 +378,23 @@ class Graph(DataType):
 
             value_set.add(self._make_edge(u, v))
             self.value.append(self._make_edge(u, v))
+
+    def adj_matrix(self):
+        if self.W:
+            # TODO: support weighted edges
+            raise NotImplementedError
+        self.val()
+        ret = Grid(self.N, self.N).set(0)
+        for val in self.value:
+            u, v = val
+            # Make 0 indexed
+            u -= 1
+            v -= 1
+            print(u, v)
+            ret[u][v] = 1
+            if not self.directed:
+                ret[v][u] = 1
+        return ret
 
     def val(self):
         self.N = int(self.N)
@@ -339,3 +419,16 @@ class LineGraph(Tree):
 
     def _generate_prufer(self):
         return Permutation(self.N).val()[:self.N - 2]
+
+
+class DAG(Graph):
+    def __init__(self, *args, **kwargs):
+        Graph.__init__(self, *args, directed=True, **kwargs)
+
+        if self.self_edge:
+            raise TypeError('A dag cannot have self loops')
+
+    def _make_edge(self, u, v):
+        if u > v:
+            u, v = v, u
+        return super()._make_edge(u, v)
