@@ -2,6 +2,7 @@ from tcgen.utils.constants import LOWERCASE
 from tcgen.primitives import *
 from tcgen.primitives import SortableMixin
 from tcgen.utils.random import *
+import logging
 
 
 __all__ = [
@@ -10,6 +11,8 @@ __all__ = [
     'NonDecreasing',
     'StrictlyIncreasing',
     'Permutation',
+    'Graph',
+    'Tree',
 ]
 
 
@@ -59,8 +62,8 @@ class Array(DataType):
         # if not isinstance(N, (int, float, Integer)):
         #     raise TypeError
 
-        # This too.
-        self.N = int(N)
+        # TODO: Generate this number only when needed to, like with primitives
+        self.N = N
 
         parse_idx = -1
         for idx, val in enumerate(args):
@@ -101,6 +104,7 @@ class Array(DataType):
         return self
 
     def val(self):
+        self.N = int(self.N)
         super().__str__()
         return self.value
 
@@ -108,7 +112,7 @@ class Array(DataType):
         return self
 
     def __next__(self):
-        super().__str__()
+        self.val()
         try:
             ret = self.value[self.idx]
             self.idx += 1
@@ -118,11 +122,11 @@ class Array(DataType):
             raise StopIteration
 
     def __str__(self):
-        super().__str__()
+        self.val()
         return ' '.join(map(str, self.value))
 
     def __getitem__(self, item):
-        super().__str__()
+        self.val()
         return self.value[item]
 
 
@@ -224,3 +228,100 @@ class Permutation(Array):
         for idx in range(1, tot_vals + 1):
             self.value.append(self._type._kth_smallest(idx))
         self.shuffle()
+
+
+class Graph(DataType):
+    # weighted = False
+    # connected = True
+    # directed = False
+    def __init__(
+        self,
+        N: int,
+        M: int,
+        W: Primitive = None,
+        *,
+        connected: bool = True,
+        duplicate: bool = False,
+        dag: bool = False,
+        self_edge: bool = False,
+    ):
+        if connected and M < N - 1:
+            raise TypeError('Not enough edges for connected graph')
+        # TODO: log a warning if it's not connected and there's too many edges
+        if not duplicate and M > N * (N - 1) // 2:
+            raise TypeError('Too many edges for connected graph')
+
+        if W and not issubclass(W.__class__, Primitive):
+            raise TypeError('Weight passed is not a primitive data type')
+
+        if dag and self_edge:
+            raise TypeError('A dag cannot have self loops')
+
+        self.N = N
+        self.M = M
+        self.W = W
+        self.dag = dag
+        self.connected = connected
+        self.self_edge = self_edge
+        self.duplicate = duplicate
+        DataType.__init__(self)
+
+    def _make_edge(self, u, v):
+        if self.dag and u > v:
+            u, v = v, u
+        if self.W:
+            return (u, v, self.W._generate())
+        return (u, v)
+
+    def _generate(self):
+        self.value = []
+        logging.info('Generating tree')
+        if self.connected:
+            # https://cp-algorithms.com/graph/pruefer_code.html
+            prufer = Array(self.N - 2, Integer(1, self.N)).val()
+            degree = [0] + [1] * (self.N)
+            for val in prufer:
+                degree[val] += 1
+            ptr = 0
+            while degree[ptr] != 1:
+                ptr += 1
+            leaf = ptr
+            for val in prufer:
+                self.value.append(self._make_edge(leaf, val))
+                degree[val] -= 1
+                if degree[val] == 1 and val < ptr:
+                    leaf = val
+                else:
+                    ptr += 1
+                    while degree[ptr] != 1:
+                        ptr += 1
+                    leaf = ptr
+
+        value_set = set(self.value)
+        integer = Integer(1, self.N)
+        logging.info('Generating the rest of the edges')
+        for _ in range(len(self.value), self.M):
+            u, v = integer._generate(), integer._generate()
+            while not self.self_edge and u == v:
+                u, v = integer._generate(), integer._generate()
+            while not self.duplicate and any(edge in value_set for edge in [(u, v), (v, u)]):
+                u, v = integer._generate(), integer._generate()
+
+            value_set.add(self._make_edge(u, v))
+            self.value.append(self._make_edge(u, v))
+
+    def val(self):
+        self.N = int(self.N)
+        self.M = int(self.M)
+        super().__str__()
+        return self.value
+
+    def __str__(self):
+        self.val()
+        ret = [' '.join(map(str, v)) for v in self.value]
+        return '\n'.join(ret)
+
+
+class Tree(Graph):
+    def __init__(self, N: int, W: Primitive = None, *, dag: bool = False):
+        Graph.__init__(self, N, N - 1, W, dag=dag)

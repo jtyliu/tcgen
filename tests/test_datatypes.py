@@ -106,3 +106,36 @@ class TestPermutation(TestDataTypesMixin):
 
     def test_permutation(self):
         assert Permutation(10).val() == [8, 9, 2, 6, 4, 5, 3, 1, 10, 7]
+
+
+class TestGraph(TestDataTypesMixin):
+
+    def test_graph(self):
+        with pytest.raises(TypeError):
+            Graph(10, 1 + 10 * (10 - 1) // 2)
+        with pytest.raises(TypeError):
+            Graph(10, 200)
+        with pytest.raises(TypeError):
+            Graph(10, 8)
+        with pytest.raises(TypeError):
+            Graph(10, 20, dag=True, self_edge=True)
+        with pytest.raises(TypeError):
+            Graph(10, 15, Array(5))
+        # try:
+        #     Graph(10, 10 * (10 - 1) // 2)
+        # except Exception:
+        #     pytest.fail('Graph(10, 10 * (10 - 1) // 2)')
+
+        assert Graph(3, 3, Integer(1, 10)).val() == [(1, 2, 7), (1, 2, 8), (3, 1, 3)]
+        assert str(Graph(3, 3, Integer(1, 10))) == '1 2 3\n1 3 9\n1 2 2'
+        assert Graph(4, 5).val() == [(1, 3), (2, 4), (4, 3), (1, 1), (1, 4)]
+        assert str(Graph(4, 5)) == '2 1\n1 4\n3 2\n3 1\n3 3'
+        with open('tests/data/testgraph.1.in', 'r') as f:
+            assert str(Graph(10000, 20000)) == f.read()
+        assert str(Graph(4, 5, dag=True)) == '1 2\n1 3\n3 4\n1 4\n2 3'
+
+
+class TestTree(TestDataTypesMixin):
+
+    def test_tree(self):
+        assert Tree(10).val() == [(2, 7), (3, 7), (4, 1), (1, 5), (6, 9), (9, 8), (8, 7), (7, 5), (8, 6)]
