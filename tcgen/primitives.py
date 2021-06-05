@@ -115,6 +115,9 @@ class Primitive:
     def val(self):
         raise NotImplementedError
 
+    def default(self):
+        raise NotImplementedError
+
     def _generate(self):
         kwargs = {}
         if self._inclusive is not None:
@@ -174,6 +177,9 @@ class Integer(Primitive, InclusiveMixin, ArithmeticMixin, SortableMixin):
         if self._inclusive:
             return self.L + k - 1
         return self.L + k
+
+    def default(self):
+        return 0
 
     def val(self):
         self.__str__()
@@ -315,6 +321,12 @@ class Float(Primitive, InclusiveMixin, ArithmeticMixin, SortableMixin):
         self.__str__()
         return self.value
 
+    def round(self, val=None):
+        self.__str__()
+        return round(self.value, val)
+
+    __round__ = round
+
     def __int__(self):
         return int(self.val())
 
@@ -364,6 +376,9 @@ class Char(Primitive):
 
     def _generate_value(self, **kwargs):
         self.value = random.choice(self.char_set, **kwargs)
+
+    def default(self):
+        return self.char_set[0]
 
     def val(self):
         self.__str__()
