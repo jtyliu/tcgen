@@ -36,10 +36,10 @@ def main(arguments):
 
     filename = os.path.basename(pathname)
     args.out = args.out or os.path.dirname(pathname)
-    os.chdir(os.path.dirname(args.out))
+
     name = filename.removesuffix('.py')
     try:
-        os.mkdir(name)
+        os.makedirs(f'/{args.out}/{name}')
     except FileExistsError:
         print("DATA ALREADY GENERATED, OVERRIDING DATA")
 

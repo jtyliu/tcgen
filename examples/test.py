@@ -1,4 +1,4 @@
 from tcgen import *
 
-print(Graph(10, 12).adj_matrix())
-# print(Grid(10, 10))
+print(2000)
+print(Tree(2000))

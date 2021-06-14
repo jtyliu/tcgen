@@ -333,6 +333,10 @@ class Graph(DataType):
         self.duplicate = duplicate
         DataType.__init__(self)
 
+    @property
+    def weighted(self):
+        return self.W is not None
+
     def _make_edge(self, u, v):
         if self.W:
             return (u, v, self.W._generate())
@@ -364,7 +368,7 @@ class Graph(DataType):
                     while degree[ptr] != 1:
                         ptr += 1
                     leaf = ptr
-
+            self.value.append(self._make_edge(leaf, self.N))
         value_set = set(self.value)
         integer = Integer(1, self.N)
         logging.info('Generating the rest of the edges')
@@ -380,20 +384,20 @@ class Graph(DataType):
             self.value.append(self._make_edge(u, v))
 
     def adj_matrix(self):
-        if self.W:
-            # TODO: support weighted edges
-            raise NotImplementedError
         self.val()
         ret = Grid(self.N, self.N).set(0)
         for val in self.value:
-            u, v = val
+            if self.weighted:
+                u, v, w = val
+            else:
+                u, v = val
+                w = 1
             # Make 0 indexed
             u -= 1
             v -= 1
-            print(u, v)
-            ret[u][v] = 1
+            ret[u][v] = w
             if not self.directed:
-                ret[v][u] = 1
+                ret[v][u] = w
         return ret
 
     def val(self):

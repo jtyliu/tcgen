@@ -122,7 +122,66 @@ class TestPermutation(TestDataTypesMixin):
         assert Permutation(10).val() == [8, 9, 2, 6, 4, 5, 3, 1, 10, 7]
 
 
-class TestGraph(TestDataTypesMixin):
+class TestGraphMixin:
+
+    def has_duplicate_edge(self, N, edges):
+        return len(set(edges)) != len(edges)
+
+    def has_self_edge(self, N, edges):
+        for edge in edges:
+            if edge[0] == edge[1]:
+                return True
+        return False
+
+    def is_connected(self, N, edges):
+        ufds = [val for val in range(N + 1)]
+
+        def find_set(u):
+            if ufds[u] == u:
+                return u
+            ufds[u] = find_set(ufds[u])
+            return ufds[u]
+
+        def union_set(u, v):
+            ufds[find_set(u)] = find_set(v)
+
+        def is_same_set(u, v):
+            return find_set(u) == find_set(v)
+
+        for edge in edges:
+            union_set(edge[0], edge[1])
+
+        for node in range(1, N + 1):
+            if not is_same_set(1, node):
+                return False
+        return True
+
+    def is_tree(self, N, edges):
+        if N != len(edges) + 1:
+            return False
+
+        graph = [[]] * (N + 1)
+        visited = [False] * (N + 1)
+        is_tree = True
+
+        def dfs(u, p):
+            global is_tree
+            if visited[u]:
+                is_tree = False
+                return
+            visited[u] = True
+            for edge in graph[u]:
+                if edge[0] != p:
+                    dfs(edge[0], u)
+
+        for edge in edges:
+            graph[edge[0]].append(edge[1:])
+
+        dfs(1, -1)
+        return is_tree
+
+
+class TestGraph(TestDataTypesMixin, TestGraphMixin):
 
     def test_graph(self):
         with pytest.raises(TypeError):
@@ -139,34 +198,33 @@ class TestGraph(TestDataTypesMixin):
         #     Graph(10, 10 * (10 - 1) // 2)
         # except Exception:
         #     pytest.fail('Graph(10, 10 * (10 - 1) // 2)')
-
-        assert Graph(3, 3, Integer(1, 10)).val() == [(1, 2, 7), (1, 2, 8), (3, 1, 3)]
-        assert str(Graph(3, 3, Integer(1, 10))) == '1 2 3\n1 3 9\n1 2 2'
-        assert Graph(4, 5).val() == [(1, 3), (2, 4), (4, 3), (1, 1), (1, 4)]
-        assert str(Graph(4, 5)) == '2 1\n1 4\n3 2\n3 1\n3 3'
+        edges = Graph(3, 3, Integer(1, 10)).val()
+        assert not self.is_tree(3, edges) and self.is_connected(3, edges) and not self.has_self_edge(3, edges) and not self.has_duplicate_edge(3, edges)
+        assert str(Graph(3, 3, Integer(1, 10))) == '1 2 8\n2 3 6\n3 1 3'
+        assert Graph(4, 5).val() == [(1, 3), (3, 2), (2, 4), (1, 1), (3, 4)]
+        assert str(Graph(4, 5)) == '2 1\n1 3\n3 4\n2 4\n1 1'
         with open('tests/data/testgraph.1.in', 'r') as f:
             assert str(Graph(10000, 20000)) == f.read()
 
     def test_adjmatrix(self):
-        assert Graph(10, 9).adj_matrix().val() == [[0, 0, 0, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 0], [0, 1, 1, 0, 1, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 1, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-        assert str(Graph(10, 9).adj_matrix()) == '0 0 0 0 0 0 0 0 0 1\n0 0 1 0 0 0 0 0 0 1\n0 1 0 0 1 0 1 0 0 0\n0 0 0 0 0 1 0 0 1 0\n0 0 1 0 0 0 0 1 1 0\n0 0 0 1 0 0 0 0 0 0\n0 0 1 0 0 0 0 0 0 0\n0 0 0 0 1 0 0 0 0 0\n0 0 0 1 1 0 0 0 0 0\n1 1 0 0 0 0 0 0 0 0'
-        with pytest.raises(NotImplementedError):
-            Graph(10, 9, Integer()).adj_matrix()
+        assert Graph(10, 9).adj_matrix().val() == [[0, 0, 0, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 1, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 1, 0, 1, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0]]
+        assert str(Graph(10, 9).adj_matrix()) == '0 0 0 0 0 0 0 1 0 0\n0 0 0 0 0 1 0 0 0 0\n0 0 0 0 1 0 0 1 0 1\n0 0 0 0 0 0 1 0 1 0\n0 0 1 0 0 0 0 0 1 0\n0 1 0 0 0 0 0 0 0 1\n0 0 0 1 0 0 0 0 0 0\n1 0 1 0 0 0 0 0 0 0\n0 0 0 1 1 0 0 0 0 0\n0 0 1 0 0 1 0 0 0 0'
+        assert Graph(10, 9, Integer()).adj_matrix().val() == [[0, 95661, 0, 0, 0, 0, 0, 0, 0, 0], [95661, 0, 0, 0, 46373, 0, 0, 0, 0, 56908], [0, 0, 0, 0, 13200, 0, 0, 0, 73376, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 9666], [0, 46373, 13200, 0, 0, 89652, 0, 0, 0, 0], [0, 0, 0, 0, 89652, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 43280, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 61885], [0, 0, 73376, 0, 0, 0, 43280, 0, 0, 0], [0, 56908, 0, 9666, 0, 0, 0, 61885, 0, 0]]
 
 
-class TestTree(TestDataTypesMixin):
+class TestTree(TestDataTypesMixin, TestGraphMixin):
 
     def test_tree(self):
-        assert Tree(10).val() == [(2, 7), (3, 7), (4, 1), (1, 5), (6, 9), (9, 8), (8, 7), (7, 5), (8, 6)]
+        assert Tree(10).val() == [(2, 7), (3, 7), (4, 1), (1, 5), (6, 9), (9, 8), (8, 7), (7, 5), (5, 10)]
 
 
-class TestLineGraph(TestDataTypesMixin):
+class TestLineGraph(TestDataTypesMixin, TestGraphMixin):
 
     def test_linegraph(self):
-        assert LineGraph(10).val() == [(7, 8), (8, 9), (9, 2), (2, 6), (6, 4), (4, 5), (5, 3), (3, 1), (6, 10)]
+        assert LineGraph(10).val() == [(7, 8), (8, 9), (9, 2), (2, 6), (6, 4), (4, 5), (5, 3), (3, 1), (1, 10)]
 
 
-class TestGrid(TestDataTypesMixin):
+class TestGrid(TestDataTypesMixin, TestGraphMixin):
 
     def test_grid(self):
         with pytest.raises(TypeError):
@@ -178,9 +236,9 @@ class TestGrid(TestDataTypesMixin):
         assert Grid(3, 4)[0][0] == 1
 
 
-class TestDAG(TestDataTypesMixin):
+class TestDAG(TestDataTypesMixin, TestGraphMixin):
 
     def test_dag(self):
         with pytest.raises(TypeError):
             DAG(5, 10, self_edge=True)
-        assert DAG(5, 10).val() == [(2, 4), (3, 4), (1, 4), (3, 5), (2, 5), (2, 3), (1, 2), (5, 5), (1, 1), (1, 5)]
+        assert DAG(5, 10).val() == [(2, 4), (3, 4), (1, 4), (1, 5), (3, 5), (2, 5), (2, 3), (1, 2), (5, 5), (1, 1)]
