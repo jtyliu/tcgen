@@ -18,7 +18,7 @@ class Generator(ABC):
         for case_num in range(N):
             self.output = ''
             self.generate(case_num)
-            self.append(self.output)
+            ret.append(self.output)
         return ret
 
     def get_test_case(self):
