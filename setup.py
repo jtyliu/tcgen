@@ -12,4 +12,5 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     license='MIT',
     url='https://github.com/JoshuaTianYangLiu/tcgen',
+    scripts=['scripts/tcgen'],
 )
