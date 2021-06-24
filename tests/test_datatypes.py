@@ -237,6 +237,7 @@ class TestLineGraph(TestDataTypesMixin, TestGraphMixin):
             degree[edge[1]] += 1
         assert all(deg <= 2 for deg in degree)
 
+
 class TestGrid(TestDataTypesMixin, TestGraphMixin):
 
     def test_grid(self):

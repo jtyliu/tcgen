@@ -420,6 +420,7 @@ class Tree(Graph):
     def __init__(self, N: int, W: Primitive = None):
         Graph.__init__(self, N, N - 1, W)
 
+
 class KRegularTree(Tree):
     def __init__(self, N: int, W: Primitive = None, k: int = 20):
         # 1000, 300, 50, 20
@@ -432,13 +433,16 @@ class KRegularTree(Tree):
     def _generate_prufer(self):
         return [1 + (i // self.k) for i in range(self.N - 2)]
 
+
 class StarGraph(KRegularTree):
     def __init__(self, N: int, W: Primitive = None):
         KRegularTree.__init__(self, N, W, N.val() - 2)
 
+
 class LineGraph(KRegularTree):
     def __init__(self, N: int, W: Primitive = None):
         KRegularTree.__init__(self, N, W, 1)
+
 
 class DAG(Graph):
     def __init__(self, *args, **kwargs):
