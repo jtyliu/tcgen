@@ -2,6 +2,7 @@ from tcgen.utils.constants import LOWERCASE
 from tcgen.utils import random, InvalidRangeException
 import sympy
 import logging
+import typing
 
 __all__ = [
     'Primitive',
@@ -97,8 +98,10 @@ class Primitive:
                     raise InvalidRangeException
                 if not self._inclusive and self.L + 1 > self.U - 1:
                     raise InvalidRangeException
-
-        self.weighted = weighted
+        if wcnt:
+            self.weighted = True
+        else:
+            self.weighted = weighted
         self.value = None
         self.wcnt = wcnt
 
@@ -334,7 +337,7 @@ class Float(Primitive, InclusiveMixin, ArithmeticMixin, SortableMixin):
 
 
 class Char(Primitive):
-    def __init__(self, char_set: str = LOWERCASE, priority: list[int] = [], **kwargs):
+    def __init__(self, char_set: str = LOWERCASE, priority: typing.List[int] = [], **kwargs):
         '''
         Args:
             char_set: A string which the character will use

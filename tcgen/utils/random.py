@@ -1,6 +1,7 @@
 import random as random_pkg
 import sympy
 import logging
+import typing
 # This is meant to be a wrapper to allow
 # weighted randoms
 # noise
@@ -73,7 +74,7 @@ class random():
         return ret
 
     @staticmethod
-    def noise(L: int, U: int, data: list[int], inclusive: bool = True) -> list[int]:
+    def noise(L: int, U: int, data: typing.List[int], inclusive: bool = True) -> typing.List[int]:
         '''
         Returns data added with noise
 
@@ -167,7 +168,7 @@ class random():
         return char_set[idx - 1]
 
     @staticmethod
-    def wchoice(char_set: str, priority: list[int], wcnt: int = 5):
+    def wchoice(char_set: str, priority: typing.List[int], wcnt: int = 5):
         '''
         Returns a weighted random character in string
 
