@@ -13,8 +13,9 @@ def dir_path(string):
         raise NotADirectoryError(string)
 
 
-def execute(filename):
-    process = subprocess.Popen(['python3.9', filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+def execute(arg):
+    filename, tc_num = arg
+    process = subprocess.Popen(['python3.9', filename, str(tc_num)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate()
     if process.returncode != 0:
         raise RuntimeError(f'Generator ran into an error\n\n{err.decode()}')
@@ -26,6 +27,8 @@ def main(arguments):
     parser = argparse.ArgumentParser(description='Generate test cases')
     parser.add_argument('file', help="Input file", type=argparse.FileType('r'))
     parser.add_argument('-c', '--cases', help='Number of cases', type=int, default=10)
+    parser.add_argument('-p', '--prefix', help='Prefix to test case', type=str, default='')
+    parser.add_argument('-s', '--start', help='Start value of cases', type=int, default=1)
     parser.add_argument('-w', '--worker', help='Number of worker processes', type=int, default=2)
     parser.add_argument('-o', '--out', help="Output folder",
                         default=None, type=dir_path)
@@ -35,21 +38,23 @@ def main(arguments):
     pathname = os.path.abspath(args.file.name)
 
     filename = os.path.basename(pathname)
-    args.out = args.out or os.path.dirname(pathname)
-
     name = filename.removesuffix('.py')
+    args.out = args.out or f'{os.path.dirname(pathname)}/{name}/'
     try:
-        os.makedirs(f'/{args.out}/{name}')
+        os.makedirs(args.out)
     except FileExistsError:
         print("DATA ALREADY GENERATED, OVERRIDING DATA")
+    cnt = start = args.start or 1
+    args_to_pass = []
+    for idx in range(args.cases):
+        args_to_pass.append([args.file.name, idx+1])
 
-    cnt = 0
     with Pool(processes=args.worker) as p:
-        for data_in in p.imap_unordered(execute, [args.file.name] * args.cases):
-            with open(f'/{args.out}/{name}/{cnt}.in', 'w') as f:
+        for data_in in p.imap(execute, args_to_pass):
+            with open(f'{args.out}{args.prefix}{cnt}.in', 'w') as f:
                 f.write(data_in.decode())
             cnt += 1
-            print('Generated %d / %d' % (cnt, args.cases))
+            print('Generated %d / %d' % (cnt - start, args.cases))
 
 
 if __name__ == '__main__':
