@@ -18,6 +18,8 @@ __all__ = [
     'LineGraph',
     'Grid',
     'DAG',
+    'StarGraph',
+    'KRegularTree',
 ]
 
 
@@ -160,7 +162,9 @@ class Array(DataType):
 class String(Array):
 
     def __init__(self, N: int, char_set: str = LOWERCASE, *args, **kwargs):
-        Array.__init__(self, N, *args, type=Char(), char_set=char_set, **kwargs)
+        if 'type' not in kwargs:
+            kwargs['type'] = Char()
+        Array.__init__(self, N, *args, char_set=char_set, **kwargs)
 
     def _generate(self):
         self.value = ''
@@ -416,14 +420,25 @@ class Tree(Graph):
     def __init__(self, N: int, W: Primitive = None):
         Graph.__init__(self, N, N - 1, W)
 
-
-class LineGraph(Tree):
-    def __init__(self, N: int, W: Primitive = None):
+class KRegularTree(Tree):
+    def __init__(self, N: int, W: Primitive = None, k: int = 20):
+        # 1000, 300, 50, 20
+        if issubclass(k.__class__, Primitive):
+            # K should be an int fo r now, might implement Integer later on
+            raise TypeError("k must be an integer")
+        self.k = k
         Tree.__init__(self, N, W)
 
     def _generate_prufer(self):
-        return Permutation(self.N).val()[:self.N - 2]
+        return [1 + (i // self.k) for i in range(self.N - 2)]
 
+class StarGraph(KRegularTree):
+    def __init__(self, N: int, W: Primitive = None):
+        KRegularTree.__init__(self, N, W, N.val() - 2)
+
+class LineGraph(KRegularTree):
+    def __init__(self, N: int, W: Primitive = None):
+        KRegularTree.__init__(self, N, W, 1)
 
 class DAG(Graph):
     def __init__(self, *args, **kwargs):

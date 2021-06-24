@@ -4,6 +4,8 @@ from tcgen.primitives import *
 from tcgen.utils import random
 from tcgen.utils.constants import *
 import pytest
+import sys
+sys.setrecursionlimit(100000)
 
 
 class TestDataTypesMixin:
@@ -215,14 +217,25 @@ class TestGraph(TestDataTypesMixin, TestGraphMixin):
 class TestTree(TestDataTypesMixin, TestGraphMixin):
 
     def test_tree(self):
-        assert Tree(10).val() == [(2, 7), (3, 7), (4, 1), (1, 5), (6, 9), (9, 8), (8, 7), (7, 5), (5, 10)]
+        # assert Tree(10).val() == [(2, 7), (3, 7), (4, 1), (1, 5), (6, 9), (9, 8), (8, 7), (7, 5), (5, 10)]
+        for _ in range(20):
+            edges = Tree(100).val()
+            assert self.is_tree(100, edges)
 
 
 class TestLineGraph(TestDataTypesMixin, TestGraphMixin):
 
     def test_linegraph(self):
-        assert LineGraph(10).val() == [(7, 8), (8, 9), (9, 2), (2, 6), (6, 4), (4, 5), (5, 3), (3, 1), (1, 10)]
-
+        edges = LineGraph(10).val()
+        assert self.is_tree(10, edges)
+        assert self.is_connected(10, edges)
+        assert not self.has_duplicate_edge(10, edges)
+        assert not self.has_self_edge(10, edges)
+        degree = [0] * (10 + 1)
+        for edge in edges:
+            degree[edge[0]] += 1
+            degree[edge[1]] += 1
+        assert all(deg <= 2 for deg in degree)
 
 class TestGrid(TestDataTypesMixin, TestGraphMixin):
 
