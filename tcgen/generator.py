@@ -13,7 +13,7 @@ class Generator(ABC):
 
     print = p
 
-    def generate_test_cases(self, N):
+    def get_test_cases(self, N):
         ret = []
         for case_num in range(N):
             self.output = ''
