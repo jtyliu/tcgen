@@ -14,14 +14,15 @@ def fix(s):
 
 
 # Getting dependencies
-HERE = pathlib.Path(__file__).parent
-requirements_path = HERE / 'requirements.txt'
-assert requirements_path.is_file()
-with open(requirements_path) as f:
-    # Windows doesn't want to read files properly for some reason
-    install_requires = list(filter(lambda x: len(x) > 0, map(lambda x: fix(x).strip(), f.readlines())))
+def parse_requirements_file(path):
+    with open(path) as fp:
+        dependencies = (d.strip() for d in fp.read().split("\n") if d.strip())
+        return [d for d in dependencies if not d.startswith("#")]
 
-README = (HERE / "README.md").read_text()
+def long_description():
+    with open("README.md") as fp:
+        return fp.read()
+
 
 setuptools.setup(
     name='cp-tcgen',
@@ -29,10 +30,10 @@ setuptools.setup(
     author='Joshua Liu',
     author_email='joshualiu@youarefantastic.com',
     description='Test case generator. Quickly design and generate test cases without all the bulk',
-    long_description=README,
+    long_description=long_description(),
     keywords='program competitive programming codeforces',
     include_package_data=True,
-    install_requires=install_requires,
+    install_requires=parse_requirements_file('requirements.txt'),
     packages=["tcgen"],
     license='MIT',
     url='https://github.com/JoshuaTianYangLiu/tcgen',
