@@ -35,7 +35,7 @@ setuptools.setup(
     keywords='program competitive programming codeforces',
     include_package_data=True,
     install_requires=parse_requirements_file('requirements.txt'),
-    packages=["tcgen"],
+    packages=setuptools.find_namespace_packages(include=["tcgen*"]),
     license='MIT',
     url='https://github.com/JoshuaTianYangLiu/tcgen',
     scripts=['scripts/tcgen', 'scripts/genout'],

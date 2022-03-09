@@ -1,5 +1,5 @@
-from .utils.constants import LOWERCASE
-from .utils import random, InvalidRangeException
+from tcgen.utils.constants import LOWERCASE
+from tcgen.utils import random, InvalidRangeException
 import sympy
 import logging
 import typing

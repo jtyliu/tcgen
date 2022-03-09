@@ -1,1 +1,1 @@
-from .random import random, InvalidRangeException
+from tcgen.utils.random import random, InvalidRangeException

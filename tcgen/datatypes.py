@@ -1,7 +1,7 @@
-from .utils.constants import LOWERCASE
-from .primitives import *
-from .primitives import SortableMixin
-from .utils.random import *
+from tcgen.utils.constants import LOWERCASE
+from tcgen.primitives import *
+from tcgen.primitives import SortableMixin
+from tcgen.utils.random import *
 import logging
 
 
