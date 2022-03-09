@@ -31,6 +31,7 @@ setuptools.setup(
     author_email='joshualiu@youarefantastic.com',
     description='Test case generator. Quickly design and generate test cases without all the bulk',
     long_description=long_description(),
+    long_description_content_type="text/markdown",
     keywords='program competitive programming codeforces',
     include_package_data=True,
     install_requires=parse_requirements_file('requirements.txt'),
