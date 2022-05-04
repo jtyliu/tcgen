@@ -4,7 +4,6 @@ import pytest
 
 
 class TestRandom:
-
     def setup_method(self):
         random.seed(0)
 
@@ -35,7 +34,15 @@ class TestRandom:
     def test_noise(self):
         with pytest.raises(InvalidRangeException):
             random.noise(10, 1, [1, 1, 2, 3, 4])
-        assert random.noise(1, 1000, [0, 0, 0, 0, 9999, 0, 0]) == [865, 395, 777, 912, 10430, 42, 266]
+        assert random.noise(1, 1000, [0, 0, 0, 0, 9999, 0, 0]) == [
+            865,
+            395,
+            777,
+            912,
+            10430,
+            42,
+            266,
+        ]
         assert random.noise(1, 100, []) == []
 
     def test_randfloat(self):
@@ -65,20 +72,26 @@ class TestRandom:
 
     def test_choice(self):
         with pytest.raises(TypeError):
-            random.choice('')
-        assert random.choice('.#') == '#'
-        assert random.choice('.#') == '#'
-        assert random.choice('.#') == '.'
-        assert random.choice(LOWERCASE) == 'i'
+            random.choice("")
+        assert random.choice(".#") == "#"
+        assert random.choice(".#") == "#"
+        assert random.choice(".#") == "."
+        assert random.choice(LOWERCASE) == "i"
 
     def test_wchoice(self):
-        assert random.wchoice(LOWERCASE, list(range(1, len(LOWERCASE) + 1)), wcnt=10) == 'a'
-        assert random.wchoice(LOWERCASE, list(range(1, len(LOWERCASE) + 1)), wcnt=-50) == 'z'
+        assert (
+            random.wchoice(LOWERCASE, list(range(1, len(LOWERCASE) + 1)), wcnt=10)
+            == "a"
+        )
+        assert (
+            random.wchoice(LOWERCASE, list(range(1, len(LOWERCASE) + 1)), wcnt=-50)
+            == "z"
+        )
         with pytest.raises(TypeError):
-            random.wchoice('', [], wcnt=-50)
+            random.wchoice("", [], wcnt=-50)
 
         with pytest.raises(TypeError):
-            random.wchoice('aaa', [], wcnt=-50)
+            random.wchoice("aaa", [], wcnt=-50)
 
     def test_randprime(self):
         with pytest.raises(TypeError):

@@ -5,17 +5,16 @@ import logging
 import typing
 
 __all__ = [
-    'Primitive',
-    'Integer',
-    'Bool',
-    'Float',
-    'Char',
-    'Prime',
+    "Primitive",
+    "Integer",
+    "Bool",
+    "Float",
+    "Char",
+    "Prime",
 ]
 
 
 class InclusiveMixin:
-
     def inclusive(self):
         self._inclusive = True
         return self
@@ -26,21 +25,19 @@ class InclusiveMixin:
 
 
 class SortableMixin:
-
     def _total_values(self):
-        '''Returns the number of possible values it can generate'''
+        """Returns the number of possible values it can generate"""
         raise NotImplementedError
 
     def _kth_smallest(self, k):
-        '''
+        """
         Returns the kth smallest value it can generate
         1 <= k <= self._total_values()
-        '''
+        """
         raise NotImplementedError
 
 
 class ArithmeticMixin:
-
     def __add__(self, val):
         if self.is_generated:
             return self.value + val
@@ -83,14 +80,9 @@ class Primitive:
     U = None
     _inclusive = None
 
-    def __init__(
-        self,
-        weighted: bool = False,
-        wcnt: int = None,
-        **kwargs
-    ):
+    def __init__(self, wcnt: int = None, **kwargs):
         if kwargs:
-            logging.warning('Recieved extra kwargs: ' + str(kwargs))
+            logging.warning("Recieved extra kwargs: " + str(kwargs))
 
         if self.L and self.U:
             if self._inclusive is not None:
@@ -98,10 +90,7 @@ class Primitive:
                     raise InvalidRangeException
                 if not self._inclusive and self.L + 1 > self.U - 1:
                     raise InvalidRangeException
-        if wcnt:
-            self.weighted = True
-        else:
-            self.weighted = weighted
+        self.weighted = bool(wcnt)
         self.value = None
         self.wcnt = wcnt
 
@@ -124,15 +113,15 @@ class Primitive:
     def _generate(self):
         kwargs = {}
         if self._inclusive is not None:
-            kwargs['inclusive'] = self._inclusive
+            kwargs["inclusive"] = self._inclusive
 
         if self.weighted:
-            logging.debug('Generating weighted value')
+            logging.debug("Generating weighted value")
             if self.wcnt:
-                kwargs['wcnt'] = self.wcnt
+                kwargs["wcnt"] = self.wcnt
             self._generate_weighted_value(**kwargs)
         else:
-            logging.debug('Generating value')
+            logging.debug("Generating value")
             self._generate_value(**kwargs)
         return self.value
 
@@ -233,11 +222,11 @@ class Prime(Integer):
         self.value = random.randprime(self.L, self.U, **kwargs)
 
     def _total_values(self):
-        '''
+        """
         Get number of primes between range
 
         !! Slow function !!
-        '''
+        """
         if self._inclusive:
             return len(list(sympy.primerange(self.L, self.U + 1)))
         return len(list(sympy.primerange(self.L + 1, self.U)))
@@ -279,7 +268,7 @@ class Float(Primitive, InclusiveMixin, ArithmeticMixin, SortableMixin):
         U: float = 1e5,
         places: int = 2,
         inclusive: bool = True,
-        **kwargs
+        **kwargs,
     ):
         if len(args) == 1:
             U = args[0]
@@ -317,7 +306,7 @@ class Float(Primitive, InclusiveMixin, ArithmeticMixin, SortableMixin):
 
     def __str__(self):
         super().__str__()
-        fmt = '{:.' + str(self.places) + 'f}'
+        fmt = "{:." + str(self.places) + "f}"
         return fmt.format(self.value)
 
     def val(self):
@@ -337,31 +326,36 @@ class Float(Primitive, InclusiveMixin, ArithmeticMixin, SortableMixin):
 
 
 class Char(Primitive):
-    def __init__(self, char_set: str = LOWERCASE, priority: typing.List[int] = [], **kwargs):
-        '''
+    def __init__(
+        self, char_set: str = LOWERCASE, priority: typing.List[int] = [], **kwargs
+    ):
+        """
         Args:
             char_set: A string which the character will use
                 If weighted and wcnt > 0, the left most characters in the string are favoured more than the right
                 If weighted and wcnt > 0, the right most characters in the string are favoured more than the left
             priority: A list which states the priority of each character in char_set
                 The array must be a permutation of [1 ... len(char_set)]
-        '''
-        if 'weighted' in kwargs and kwargs['weighted']:
-            if len(priority) != len(char_set) and len(priority):
-                raise TypeError('The array must be a permutation of [1 ... len(char_set)]')
+        """ 
+        if len(priority) != len(char_set) and len(priority):
+            raise TypeError(
+                "The array must be a permutation of [1 ... len(char_set)]"
+            )
 
-            if len(priority) and sorted(priority) != list(range(1, len(char_set) + 1)):
-                raise TypeError('The array must be a permutation of [1 ... len(char_set)]')
+        if len(priority) and sorted(priority) != list(range(1, len(char_set) + 1)):
+            raise TypeError(
+                "The array must be a permutation of [1 ... len(char_set)]"
+            )
         elif len(priority):
-            logging.warning('Not weighted, but priority arg still is passed')
+            logging.warning("Not weighted, but priority arg still is passed")
 
         if len(char_set) == 0:
             raise TypeError
 
         if len(char_set) == 1:
-            logging.warning('Len or character set is 1')
+            logging.warning("Len or character set is 1")
 
-        if 'inclusive' in kwargs:
+        if "inclusive" in kwargs:
             raise TypeError
 
         self.char_set = char_set

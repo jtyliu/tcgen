@@ -8,18 +8,18 @@ import logging
 # TODO: Add a parent class for DataType and Primitive to allow String to work as a primitive
 # Graph(10, 12, String(3)) should work as intended
 __all__ = [
-    'Array',
-    'String',
-    'NonDecreasing',
-    'StrictlyIncreasing',
-    'Permutation',
-    'Graph',
-    'Tree',
-    'LineGraph',
-    'Grid',
-    'DAG',
-    'StarGraph',
-    'KRegularTree',
+    "Array",
+    "String",
+    "NonDecreasing",
+    "StrictlyIncreasing",
+    "Permutation",
+    "Graph",
+    "Tree",
+    "LineGraph",
+    "Grid",
+    "DAG",
+    "StarGraph",
+    "KRegularTree",
 ]
 
 
@@ -49,8 +49,8 @@ class DataType:
 
 
 class Array(DataType):
-    def __init__(self, N: int, *args, type: Primitive = Integer(), **kwargs):
-        '''
+    def __init__(self, N: int, *args, type: Primitive = None, **kwargs):
+        """
         Create an array of a specified primitive datatype
 
         Args:
@@ -69,12 +69,13 @@ class Array(DataType):
             Array(N, type=Float(3))
             Array(N, 0, 1e4, type=Float()) # The bounds passed overwrite Float() bounds
             Array(N, 1e4, type=Float()) # The bounds passed overwrite Float() bounds
-        '''
+        """
         # Most likely need to remove this later on for List()
         # if not isinstance(N, (int, float, Integer)):
         #     raise TypeError
 
         # TODO: Generate this number only when needed to, like with primitives
+        type = type or Integer()
         self.N = N
 
         parse_idx = -1
@@ -92,12 +93,9 @@ class Array(DataType):
             raise TypeError
 
         self._type = type
-        if parse_idx == -1:
+        # Only override default args passed to type is bounds are passed
+        if len(args) != 0 or len(kwargs) != 0:
             self._type.__init__(*args, **kwargs)
-        else:
-            # Only override default args passed to type is bounds are passed
-            if len(args) != 0 or len(kwargs) != 0:
-                self._type.__init__(*args, **kwargs)
         self.idx = 0
         DataType.__init__(self)
 
@@ -117,24 +115,25 @@ class Array(DataType):
         return self.value
 
     def add(self, val):
-        '''
+        """
         Add a value to every element
 
         Args:
             val: value to add, accepts primitive data types and Primitive objects
-        '''
+        """
         try:
             if self.is_generated:
                 for idx in range(self.N):
                     if isinstance(val, Primitive):
-                        self.value[idx] += val._generate()
-                    self.value[idx] += val
+                        self.value[idx] += val.val()
+                    else:
+                        self.value[idx] += val
             else:
                 if isinstance(val, Primitive):
                     val = val.val()
                 self._type += val
         except TypeError:
-            raise TypeError(f'Unable to add value {val} to type {self._type.__class__}')
+            raise TypeError(f"Unable to add value {val} to type {self._type.__class__}")
         return self
 
     def __iter__(self):
@@ -152,7 +151,7 @@ class Array(DataType):
 
     def __str__(self):
         self.val()
-        return ' '.join(map(str, self.value))
+        return " ".join(map(str, self.value))
 
     def __getitem__(self, item):
         self.val()
@@ -160,14 +159,13 @@ class Array(DataType):
 
 
 class String(Array):
-
     def __init__(self, N: int, char_set: str = LOWERCASE, *args, **kwargs):
-        if 'type' not in kwargs:
-            kwargs['type'] = Char()
+        if "type" not in kwargs:
+            kwargs["type"] = Char()
         Array.__init__(self, N, *args, char_set=char_set, **kwargs)
 
     def _generate(self):
-        self.value = ''
+        self.value = ""
         for _ in range(self.N):
             self.value += self._type._generate()
 
@@ -177,7 +175,6 @@ class String(Array):
 
 
 class NonDecreasing(Array):
-
     def __init__(self, N: int, *args, increasing: bool = True, **kwargs):
         self.increasing = increasing
 
@@ -200,12 +197,11 @@ class NonDecreasing(Array):
 
 
 class StrictlyIncreasing(NonDecreasing):
-
     def __init__(self, N: int, *args, **kwargs):
         NonDecreasing.__init__(self, N, *args, **kwargs)
 
         if N > self._type._total_values():
-            raise ValueError('Asked for more values than can generate')
+            raise ValueError("Asked for more values than can generate")
 
     def _generate(self):
         # Bad memory comlpextity
@@ -246,7 +242,6 @@ class StrictlyIncreasing(NonDecreasing):
 
 
 class Permutation(Array):
-
     def __init__(self, N: int):
         # For now, it's 1 indexed.
         # Later on, I should consider if I should suppport other types
@@ -262,11 +257,13 @@ class Permutation(Array):
 
 
 class Grid(DataType):
-
-    def __init__(self, H: int, W: int, type: Primitive = Bool(), *, space_seperated: bool = True):
-        '''0-indexed grid'''
+    def __init__(
+        self, H: int, W: int, type: Primitive = None, *, space_seperated: bool = True
+    ):
+        """0-indexed grid"""
         # TODO: support 1-indexed
         # TODO: support default values
+        type = type or Bool()
         if not issubclass(type.__class__, Primitive):
             raise TypeError
 
@@ -285,7 +282,7 @@ class Grid(DataType):
                 self.value[r][c] = self._type._generate()
 
     def set(self, val):
-        '''Set all values in grid'''
+        """Set all values in grid"""
         self.value = [[val] * self.W for _ in range(self.H)]
         return self
 
@@ -297,12 +294,13 @@ class Grid(DataType):
 
     def __str__(self):
         self.val()
-        seperator = ' ' if self.space_seperated else ''
+        seperator = " " if self.space_seperated else ""
         ret = [seperator.join(map(str, arr)) for arr in self.value]
-        return '\n'.join(ret)
+        return "\n".join(ret)
 
     def __getitem__(self, idx):
-        self.val()
+        if self.value is None:
+            self.val()
         return self.value[idx]
 
 
@@ -320,13 +318,13 @@ class Graph(DataType):
         self_edge: bool = False,
     ):
         if connected and M < N - 1:
-            raise TypeError('Not enough edges for connected graph')
+            raise TypeError("Not enough edges for connected graph")
         # TODO: log a warning if it's not connected and there's too many edges
         if not duplicate and M > N * (N - 1) // 2:
-            raise TypeError('Too many edges for connected graph')
+            raise TypeError("Too many edges for connected graph")
 
         if W and not issubclass(W.__class__, Primitive):
-            raise TypeError('Weight passed is not a primitive data type')
+            raise TypeError("Weight passed is not a primitive data type")
 
         self.N = N
         self.M = M
@@ -351,7 +349,7 @@ class Graph(DataType):
 
     def _generate(self):
         self.value = []
-        logging.info('Generating tree')
+        logging.info("Generating tree")
         if self.connected:
             # https://cp-algorithms.com/graph/pruefer_code.html
             prufer = self._generate_prufer()
@@ -373,18 +371,25 @@ class Graph(DataType):
                         ptr += 1
                     leaf = ptr
             self.value.append(self._make_edge(leaf, self.N))
-        value_set = set(self.value)
+
+        value_set = set()
+        for val in self.value:
+            value_set.add(val[:2])
         integer = Integer(1, self.N)
-        logging.info('Generating the rest of the edges')
-        # TODO: improve generation by doing O(N^2) is N is small enough
+        logging.info("Generating the rest of the edges")
+        # TODO: improve generation by doing O(N^2) if N is small enough
         for _ in range(len(self.value), self.M):
             u, v = integer._generate(), integer._generate()
             while not self.self_edge and u == v:
                 u, v = integer._generate(), integer._generate()
-            while not self.duplicate and any(edge in value_set for edge in [(u, v), (v, u)]):
+            while not self.duplicate and (u, v) in value_set:
+                u, v = integer._generate(), integer._generate()
+            while not self.directed and any(
+                edge in value_set for edge in [(u, v), (v, u)]
+            ):
                 u, v = integer._generate(), integer._generate()
 
-            value_set.add(self._make_edge(u, v))
+            value_set.add((u, v))
             self.value.append(self._make_edge(u, v))
 
     def adj_matrix(self):
@@ -412,8 +417,8 @@ class Graph(DataType):
 
     def __str__(self):
         self.val()
-        ret = [' '.join(map(str, v)) for v in self.value]
-        return '\n'.join(ret)
+        ret = [" ".join(map(str, v)) for v in self.value]
+        return "\n".join(ret)
 
 
 class Tree(Graph):
@@ -449,7 +454,7 @@ class DAG(Graph):
         Graph.__init__(self, *args, directed=True, **kwargs)
 
         if self.self_edge:
-            raise TypeError('A dag cannot have self loops')
+            raise TypeError("A dag cannot have self loops")
 
     def _make_edge(self, u, v):
         if u > v:
